@@ -148,10 +148,12 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       border-top-left-radius:14px;
       border-top-right-radius:14px;
     }
-    #browserPanel .bulkbar:first-child,
     #browserPanel #content>.message:first-child{
       border-bottom-left-radius:14px;
       border-bottom-right-radius:14px;
+    }
+    #browserPanel #content>.bulkbar:first-child{
+      border-radius:0;
     }
 
     .editor-shell{position:relative;z-index:5}
@@ -665,6 +667,103 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     #refreshIndex{grid-column:auto!important}
   }
 
+
+    /* Managed view refresh: closer to the public read-only listing, with editor actions kept */
+    .manager-table{table-layout:fixed;border-collapse:collapse}
+    .manager-table th:nth-child(1),.manager-table td:nth-child(1){width:58px}
+    .manager-table th:nth-child(2),.manager-table td:nth-child(2){width:auto}
+    .manager-table th:nth-child(3),.manager-table td:nth-child(3){width:180px}
+    .manager-table th:nth-child(4),.manager-table td:nth-child(4){width:110px}
+    .manager-table th:nth-child(5),.manager-table td:nth-child(5){width:72px}
+    .manager-table th,.manager-table td{padding:13px 16px}
+    .manager-table .name-cell{min-width:0;overflow:hidden}
+    .manager-table .name{display:flex;align-items:center;gap:10px;min-width:0;max-width:100%;overflow:hidden}
+    .manager-table .truncate-text{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;word-break:normal;overflow-wrap:normal}
+    .manager-table .modified-cell{white-space:nowrap}
+    .manager-table .size-cell{white-space:nowrap;text-align:right}
+    .manager-table .actions-cell{text-align:right;overflow:visible}
+    .manager-table .row-meta{display:none}
+    .bulkbar.show{margin:0;border-bottom:1px solid var(--line);background:rgba(66,211,146,.09)}
+    .bulk-summary strong{font-size:1.08rem;color:var(--text)}
+
+    @media(max-width:760px){
+      #browserPanel{overflow:visible}
+      .pathbar{border-bottom:1px solid var(--line)}
+      .bulkbar.show{position:static;display:grid;grid-template-columns:1fr;gap:10px;padding:12px;border-bottom:1px solid var(--line);background:rgba(66,211,146,.085)}
+      .bulk-summary{justify-content:flex-start;font-size:1rem}
+      .bulk-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+      .bulk-actions button,.bulk-actions .action{width:100%;min-height:42px;justify-content:center;text-align:center}
+      .manager-table,.manager-table tbody,.manager-table tr,.manager-table td{display:block}
+      .manager-table thead{display:none!important}
+      .manager-table tbody{display:grid!important;gap:8px!important;padding:10px!important}
+      #content .manager-table tbody tr{
+        display:grid!important;
+        grid-template-columns:34px minmax(0,1fr) 42px!important;
+        grid-template-rows:auto auto!important;
+        align-items:center!important;
+        column-gap:8px!important;
+        row-gap:4px!important;
+        min-height:58px!important;
+        padding:10px!important;
+        border:1px solid rgba(48,56,71,.78)!important;
+        border-radius:14px!important;
+        background:rgba(255,255,255,.026)!important;
+        overflow:visible!important;
+      }
+      body.light #content .manager-table tbody tr{border-color:rgba(215,222,232,.95)!important;background:rgba(255,255,255,.72)!important}
+      #content .manager-table tbody tr.selected{background:rgba(66,211,146,.14)!important}
+      #content .manager-table tbody tr>td{min-width:0!important;margin:0!important;padding:0!important;border:0!important;overflow:visible!important}
+      #content .manager-table .select-col{grid-column:1!important;grid-row:1 / span 2!important;width:34px!important;min-width:34px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+      #content .manager-table .name-cell{grid-column:2!important;grid-row:1 / span 2!important;overflow:hidden!important;display:block!important}
+      #content .manager-table .modified-cell{display:none!important}
+      #content .manager-table .size-cell{display:none!important}
+      #content .manager-table .actions-cell{grid-column:3!important;grid-row:1 / span 2!important;width:42px!important;min-width:42px!important;height:42px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important}
+      #content .manager-table .name{display:grid!important;grid-template-columns:30px minmax(0,1fr)!important;gap:9px!important;align-items:center!important;width:100%!important;max-width:100%!important;min-width:0!important;overflow:hidden!important}
+      #content .manager-table .name .icon{width:30px!important;height:30px!important;min-width:30px!important;border-radius:9px!important}
+      #content .manager-table .name .truncate-text{font-size:.95rem!important;line-height:1.25!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important}
+      #content .manager-table .row-meta{display:flex!important;gap:8px;align-items:center;margin:4px 0 0 39px;color:var(--muted);font-size:.82rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      #content .manager-table .row-meta span+span::before{content:"·";margin-right:8px;color:#5e6977}
+      #content .manager-table .actions,#content .manager-table .item-menu{width:42px!important;min-width:42px!important;max-width:42px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+      #content .manager-table .item-menu-toggle{width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important;padding:0!important;border-radius:12px!important}
+      #content .manager-table .item-menu-list{right:0!important;max-width:calc(100vw - 34px)!important}
+    }
+
+    @media(max-width:430px){
+      .bulk-actions{grid-template-columns:1fr!important}
+      #content .manager-table tbody tr{grid-template-columns:32px minmax(0,1fr) 40px!important;padding:9px!important}
+      #content .manager-table .row-meta{margin-left:37px;font-size:.8rem}
+    }
+
+
+  /* Mobile portrait dropdown fix: keep row menus opening downward and let them overflow cleanly */
+  @media(max-width:760px){
+    #content .file-table .item-menu{position:relative;overflow:visible!important;z-index:60}
+    #content .file-table .item-menu.open{z-index:240!important}
+    #content .file-table .item-menu-list{
+      top:calc(100% + 8px)!important;
+      bottom:auto!important;
+      left:auto!important;
+      right:0!important;
+      width:min(220px,calc(100vw - 28px))!important;
+      max-height:min(55dvh,320px)!important;
+      overflow:auto!important;
+      overscroll-behavior:contain;
+      -webkit-overflow-scrolling:touch;
+      z-index:241!important;
+    }
+  }
+
+
+  /* When a mobile row menu is open, reserve space below the browser panel so the dropdown does not overlap the footer/background */
+  @media(max-width:760px){
+    body.mobile-menu-open #browserPanel{margin-bottom:260px!important}
+  }
+
+  /* Mobile selection bar cleanup */
+  @media(max-width:760px){
+    #browserPanel #content>.bulkbar:first-child{border-bottom:1px solid var(--line)!important;border-bottom-left-radius:0!important;border-bottom-right-radius:0!important}
+  }
+
   </style>
 </head>
 <body>
@@ -847,14 +946,15 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     }
     function truncatePath(path,max=42){path=String(path||"");if(path.length<=max)return path;const marker="(...)";const tail=Math.min(14,Math.max(8,max-12));const head=Math.max(4,max-marker.length-tail);return path.slice(0,head)+marker+path.slice(-tail)}
     function selectionBar(){const selected=selectedItems(),count=selected.length;if(!count)return`<div class="bulkbar" id="bulkbar" aria-live="polite"></div>`;const extractable=selected.some(i=>i.type==="file"&&i.extractable);return`<div class="bulkbar show" id="bulkbar" aria-live="polite"><div class="bulk-summary"><strong>${count}</strong> selected</div><div class="bulk-actions"><button class="action" type="button" onclick="downloadSelected()">Download as ZIP</button><button class="action" type="button" onclick="copySelectedUrls()">Copy URLs</button><button class="action" type="button" onclick="moveSelectedPrompt()">Move</button><button class="action" type="button" onclick="extractSelected()" ${extractable?"":"disabled"}>Extract</button><button class="action danger" type="button" onclick="deleteSelected()">Delete</button><button class="action" type="button" onclick="clearSelection()">Deselect</button></div></div>`}
-    function render(s){renderBreadcrumbs();const entries=currentEntries();if(!s){const folders=entries.filter(i=>i.type==="dir").length,files=entries.filter(i=>i.type==="file").length,total=entries.filter(i=>i.type==="file").reduce((a,i)=>a+Number(i.size||0),0);s={folders,files,total_size_label:formatBytes(total)}}const selectedCount=selectedItems().length;stats.textContent=`${s.folders} folder${s.folders===1?"":"s"} · ${s.files} file${s.files===1?"":"s"} · ${s.total_size_label}${selectedCount?` · ${selectedCount} selected`:""}`;if(!entries.length){content.innerHTML=`${selectionBar()}<div class="message">No files found in this folder.</div>`;setupSelectionControls();setupDragAndDrop();return}content.innerHTML=`${selectionBar()}<table class="file-table"><thead><tr><th class="select-col"><input id="selectAll" type="checkbox" aria-label="Select all visible items" onchange="toggleSelectAll(this.checked)"></th><th class="name-cell">Name</th><th class="hide-sm path-cell">Path</th><th class="right hide-sm size-cell">Size</th><th class="right actions-cell">Actions</th></tr></thead><tbody>${entries.map(renderRow).join("")}</tbody></table>`;setupSelectionControls();setupDragAndDrop()}
+    function render(s){renderBreadcrumbs();const entries=currentEntries();if(!s){const folders=entries.filter(i=>i.type==="dir").length,files=entries.filter(i=>i.type==="file").length,total=entries.filter(i=>i.type==="file").reduce((a,i)=>a+Number(i.size||0),0);s={folders,files,total_size_label:formatBytes(total)}}const selectedCount=selectedItems().length;stats.textContent=`${s.folders} folder${s.folders===1?"":"s"} · ${s.files} file${s.files===1?"":"s"} · ${s.total_size_label}${selectedCount?` · ${selectedCount} selected`:""}`;if(!entries.length){content.innerHTML=`${selectionBar()}<div class="message">No files found in this folder.</div>`;setupSelectionControls();setupDragAndDrop();return}content.innerHTML=`${selectionBar()}<table class="file-table manager-table"><thead><tr><th class="select-col"><input id="selectAll" type="checkbox" aria-label="Select all visible items" onchange="toggleSelectAll(this.checked)"></th><th class="name-cell">Name</th><th class="hide-sm modified-cell">Modified</th><th class="right size-cell">Size</th><th class="right actions-cell"></th></tr></thead><tbody>${entries.map(renderRow).join("")}</tbody></table>`;setupSelectionControls();setupDragAndDrop()}
     function itemMenu(label,items){return`<div class="item-menu" data-item-menu><button class="action item-menu-toggle" type="button" aria-label="More actions for ${escapeAttr(label)}" aria-haspopup="menu" aria-expanded="false">⋯</button><div class="item-menu-list" role="menu">${items}</div></div>`}
     function renderRow(item){
       const isDir=item.type==="dir",icon=isDir?"📁":fileIcon(item.name),isSelected=state.selected.has(item.path);
       let actions,click;
       if(isDir){
         const downloadUrl=fileDownloadUrl(item);
-        actions=itemMenu(item.name,`<a class="action" href="${escapeAttr(downloadUrl)}" download="${escapeAttr(item.download_name||item.name+'.zip')}">Download ZIP</a><button class="action" type="button" onclick="openMovePicker(['${escapeJs(item.path)}'])">Move</button><button class="action" type="button" onclick="renameItem('${escapeJs(item.path)}','${escapeJs(item.name)}')">Rename</button><button class="action" type="button" onclick="copyText('${escapeJs(downloadUrl)}', 'Copied folder URL')">Copy URL</button><button class="action danger" type="button" onclick="deleteItem('${escapeJs(item.path)}','dir')">Delete</button>`);
+        const folderUrl=filePublicUrl(item);
+        actions=itemMenu(item.name,`<a class="action" href="${escapeAttr(downloadUrl)}" download="${escapeAttr(item.download_name||item.name+'.zip')}">Download ZIP</a><button class="action" type="button" onclick="openMovePicker(['${escapeJs(item.path)}'])">Move</button><button class="action" type="button" onclick="renameItem('${escapeJs(item.path)}','${escapeJs(item.name)}')">Rename</button><button class="action" type="button" onclick="copyText('${escapeJs(folderUrl)}', 'Copied folder URL')">Copy URL</button><button class="action danger" type="button" onclick="deleteItem('${escapeJs(item.path)}','dir')">Delete</button>`);
         click=`href="?path=${encodeURIComponent(item.path)}" onclick="event.preventDefault(); openFolder('${escapeJs(item.path)}')"`;
       }else{
         const url=filePublicUrl(item);
@@ -863,13 +963,9 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
         click=item.editable?`href="#" onclick="event.preventDefault(); editFile('${escapeJs(item.path)}')" class="name file-name"`:`href="${escapeAttr(downloadUrl)}" download="${escapeAttr(item.download_name||item.name)}" class="name file-name"`;
       }
       const nameMarkup=isDir?`<a class="name" ${click}>`:`<a ${click}>`;
-      const compactMobile=window.matchMedia("(max-width:760px)").matches;
-      const mediumScreen=window.innerWidth<=1280;
-      const displayName=compactMobile
-        ? truncateNameCompact(item.name,isDir)
-        : truncateName(item.name,mediumScreen?(isDir?18:20):(isDir?22:24));
-      const displayPath=truncatePath(item.path,compactMobile?18:(mediumScreen?30:38));
-      return`<tr class="${isDir?"folder":"file"}${isSelected?" selected":""}" draggable="true" data-path="${escapeAttr(item.path)}" data-type="${item.type}" ${isDir?`data-drop-folder="${escapeAttr(item.path)}"`:""}><td class="select-col"><input class="row-select" type="checkbox" aria-label="Select ${escapeAttr(item.name)}" ${isSelected?"checked":""} onclick="event.stopPropagation()" onchange="toggleSelected('${escapeJs(item.path)}',this.checked)"></td><td class="name-cell">${nameMarkup}<span class="icon">${icon}</span><span class="truncate-text" title="${escapeAttr(item.name)}">${escapeHtml(displayName)}</span></a></td><td class="muted hide-sm path-cell"><span class="truncate-text" title="${escapeAttr(item.path)}">${escapeHtml(displayPath)}</span></td><td class="right muted hide-sm size-cell"><span class="size-value">${isDir?"":escapeHtml(item.size_label||formatBytes(item.size))}</span></td><td class="right actions-cell"><div class="actions">${actions}</div></td></tr>`
+      const modified=formatDate(item.modified);
+      const sizeLabel=isDir?"—":escapeHtml(item.size_label||formatBytes(item.size));
+      return`<tr class="${isDir?"folder":"file"}${isSelected?" selected":""}" draggable="true" data-path="${escapeAttr(item.path)}" data-type="${item.type}" ${isDir?`data-drop-folder="${escapeAttr(item.path)}"`:""}><td class="select-col"><input class="row-select" type="checkbox" aria-label="Select ${escapeAttr(item.name)}" ${isSelected?"checked":""} onclick="event.stopPropagation()" onchange="toggleSelected('${escapeJs(item.path)}',this.checked)"></td><td class="name-cell">${nameMarkup}<span class="icon">${icon}</span><span class="truncate-text" title="${escapeAttr(item.path)}">${escapeHtml(item.name)}</span></a><div class="row-meta"><span>${escapeHtml(modified)}</span><span>${sizeLabel}</span></div></td><td class="muted hide-sm modified-cell">${escapeHtml(modified)}</td><td class="right muted size-cell"><span class="size-value">${sizeLabel}</span></td><td class="right actions-cell"><div class="actions">${actions}</div></td></tr>`
     }
     function openFolder(path){state.path=cleanPath(path);state.selected.clear();search.value="";const u=new URL(location.href);if(state.path)u.searchParams.set("path",state.path);else u.searchParams.delete("path");history.pushState(null,"",u);loadFolder()}
     function renderBreadcrumbs(){const parts=state.path?state.path.split("/"):[];let html=`<button type="button" data-drop-folder="" onclick="openFolder('')">root</button>`;parts.forEach((part,index)=>{const path=parts.slice(0,index+1).join("/");html+=`<span class="sep">/</span><button type="button" data-drop-folder="${escapeAttr(path)}" onclick="openFolder('${escapeJs(path)}')">${escapeHtml(part)}</button>`});breadcrumbs.innerHTML=html}
@@ -883,7 +979,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     function clearSelection(){state.selected.clear();render()}
     function filenameFromDisposition(disposition){const star=String(disposition||"").match(/filename\*=UTF-8''([^;]+)/i);if(star){try{return decodeURIComponent(star[1].trim().replace(/^"|"$/g,""))}catch{return star[1]}}const normal=String(disposition||"").match(/filename="?([^";]+)"?/i);return normal?normal[1]:""}
     async function downloadSelected(){const paths=selectedPaths();if(!paths.length){toast("No selected items.");return}try{toast("Preparing ZIP...");const r=await fetch(apiUrl("download_batch"),{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({paths})});if(r.status===401){location.reload();return}if(!r.ok){let message="Download failed";try{const j=await r.json();message=j.error||message}catch{message=await r.text()||message}throw new Error(message)}const blob=await r.blob();const name=filenameFromDisposition(r.headers.get("Content-Disposition"))||"selected-items.zip";const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);toast(`Downloaded ${paths.length} selected item${paths.length===1?"":"s"}.`)}catch(e){toast(e.message||String(e))}}
-    async function copySelectedUrls(){const items=selectedItems();if(!items.length){toast("No selected items.");return}const urls=items.map(item=>item.type==="file"?filePublicUrl(item):fileDownloadUrl(item));await copyText(urls.join("\n"),`Copied ${urls.length} URL${urls.length===1?"":"s"}`)}
+    async function copySelectedUrls(){const items=selectedItems();if(!items.length){toast("No selected items.");return}const urls=items.map(item=>filePublicUrl(item));await copyText(urls.join("\n"),`Copied ${urls.length} URL${urls.length===1?"":"s"}`)}
     async function deleteSelected(){const paths=selectedPaths();if(!paths.length){toast("No selected items.");return}const preview=paths.slice(0,8).join("\n")+(paths.length>8?"\n...":"");if(!confirm(`Delete ${paths.length} selected item${paths.length===1?"":"s"}?\n\n${preview}`))return;await deleteItems(paths)}
     async function moveSelectedPrompt(){const paths=selectedPaths();if(!paths.length){toast("No selected items.");return}openMovePicker(paths)}
     async function extractSelected(){const items=selectedItems().filter(i=>i.type==="file"&&i.extractable);if(!items.length){toast("No selected ZIP archives.");return}const preview=items.map(i=>i.path).slice(0,8).join("\n")+(items.length>8?"\n...":"");if(!confirm(`Extract ${items.length} selected ZIP archive${items.length===1?"":"s"}?\n\n${preview}`))return;let ok=0,errors=[];for(const item of items){try{await apiPost("extract",{path:item.path});ok++}catch(e){errors.push(`${item.path}: ${e.message||String(e)}`)}}toast(errors.length?`Extracted ${ok}; failed ${errors.length}: ${errors[0]}`:`Extracted ${ok} archive${ok===1?"":"s"}.`);await loadFolder()}
@@ -939,6 +1035,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     function fileIcon(name){const ext=extension(name);if(["bz2","zip","7z","rar"].includes(ext))return"🗜️";if(["bsp","nav"].includes(ext))return"🗺️";if(["vmt","vtf","png","jpg","jpeg","webp","gif"].includes(ext))return"🖼️";if(["wav","mp3","ogg"].includes(ext))return"🔊";if(["mdl","vvd","phy","vtx"].includes(ext))return"🧩";if(["txt","cfg","res","json","html","css","js"].includes(ext))return"📄";return"📦"}
     function extension(name){const i=String(name).lastIndexOf(".");return i>=0?String(name).slice(i+1).toLowerCase():""}
     function formatBytes(bytes){bytes=Number(bytes||0);if(!bytes)return"0 B";const units=["B","KB","MB","GB","TB"],i=Math.min(Math.floor(Math.log(bytes)/Math.log(1024)),units.length-1);return`${(bytes/Math.pow(1024,i)).toFixed(i===0?0:1)} ${units[i]}`}
+    function formatDate(ts){ts=Number(ts||0);if(!ts)return"—";const d=new Date(ts*1000);if(Number.isNaN(d.getTime()))return"—";return d.toLocaleString([], {year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"})}
     async function copyText(text,message){try{await navigator.clipboard.writeText(text);toast(message||"Copied")}catch{prompt("Copy this:",text)}}
     function toast(message){const el=$("toast");el.textContent=message;el.classList.remove("hiding");el.classList.add("show");clearTimeout(toast.timer);clearTimeout(toast.hideTimer);toast.timer=setTimeout(()=>{el.classList.remove("show");el.classList.add("hiding");toast.hideTimer=setTimeout(()=>el.classList.remove("hiding"),280)},6500)}
     function escapeHtml(str){return String(str).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
@@ -947,13 +1044,17 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
 
     search.addEventListener("input",()=>render());
     let lastRenderWidth=window.innerWidth;
-    window.addEventListener("resize",()=>{clearTimeout(window.__resizeRenderTimer);window.__resizeRenderTimer=setTimeout(()=>{lastRenderWidth=window.innerWidth;render()},120)});
-    window.addEventListener("orientationchange",()=>setTimeout(()=>render(),220));
+    window.addEventListener("resize",()=>{clearTimeout(window.__resizeRenderTimer);window.__resizeRenderTimer=setTimeout(()=>{lastRenderWidth=window.innerWidth;render();updateMobileMenuState()},120)});
+    window.addEventListener("orientationchange",()=>setTimeout(()=>{render();updateMobileMenuState()},220));
     const newDropdown=$("newDropdown");
     const uploadDropdown=$("uploadDropdown"),uploadMenuBtn=$("uploadMenuBtn");
     function closeDropdowns(except=null){
       if(except!=="new")newDropdown.classList.remove("open");
       if(except!=="upload")uploadDropdown.classList.remove("open");
+    }
+    function updateMobileMenuState(){
+      const hasOpen=window.innerWidth<=760 && !!document.querySelector(".item-menu.open");
+      document.body.classList.toggle("mobile-menu-open",hasOpen);
     }
     function closeItemMenus(except=null){
       document.querySelectorAll(".item-menu.open").forEach(menu=>{
@@ -962,6 +1063,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
         const btn=menu.querySelector(".item-menu-toggle");
         if(btn)btn.setAttribute("aria-expanded","false");
       });
+      updateMobileMenuState();
     }
     $("newMenuBtn").addEventListener("click",e=>{
       e.stopPropagation();
@@ -989,6 +1091,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
           menu.classList.add("open");
           toggle.setAttribute("aria-expanded","true");
         }
+        updateMobileMenuState();
         return;
       }
       const menuAction=e.target.closest(".item-menu-list .action, .item-menu-list button");
@@ -1033,6 +1136,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     window.addEventListener("popstate",()=>{state.path=cleanPath(new URL(location.href).searchParams.get("path")||"");state.selected.clear();search.value="";loadFolder()});
     window.addEventListener("beforeunload",e=>{if(state.dirty){e.preventDefault();e.returnValue=""}});
     applyTheme();
+    updateMobileMenuState();
     loadFolder();
   </script>
 <?php endif; ?>

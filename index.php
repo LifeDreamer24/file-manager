@@ -63,8 +63,14 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     .subtitle{margin:0;max-width:760px;color:var(--muted);line-height:1.5}
     .badge{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.045);color:var(--muted);white-space:nowrap;font-size:.92rem}
     body.light .badge{background:rgba(255,255,255,.7)}
-    .badge-dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 12px var(--good)}
+    .badge-dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 12px var(--good);flex:0 0 auto}
     .header-actions{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;justify-content:flex-end}
+    .login-pill{display:inline-flex;align-items:center;gap:10px;padding:7px 7px 7px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.045);color:var(--muted);white-space:nowrap;font-size:.92rem}
+    body.light .login-pill{background:rgba(255,255,255,.7)}
+    .logout-icon{width:32px;height:32px;display:inline-grid;place-items:center;border:1px solid rgba(148,163,184,.32);border-radius:999px;background:rgba(255,255,255,.06);color:var(--text);transition:transform .12s ease,border-color .12s ease,background .12s ease,box-shadow .12s ease}
+    .logout-icon svg{width:16px;height:16px;stroke:currentColor}
+    .logout-icon:hover,.logout-icon:focus-visible{transform:translateY(-1px);border-color:rgba(66,211,146,.75);background:var(--goodsoft);box-shadow:0 0 0 3px rgba(66,211,146,.16);outline:0}
+    body.light .logout-icon{background:rgba(17,24,39,.045)}
     .icon-btn{width:42px;height:42px;display:inline-grid;place-items:center;border-radius:999px;padding:0;font-size:1.05rem;background:rgba(255,255,255,.06);flex:0 0 auto}
     .copy-base-btn{white-space:nowrap}
     .dropdown{position:relative;z-index:1}
@@ -83,8 +89,11 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     .toolbar{position:relative;z-index:40;display:flex;align-items:center;gap:10px;margin:20px 0;flex-wrap:wrap}
     .toolbar input[type="search"]{flex:1 1 360px;min-width:240px}
     .toolbar-actions{position:relative;z-index:41;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto}
+    .toolbar-actions>button,.toolbar-actions>.action,.toolbar-actions>.dropdown>button{width:100px;min-width:100px;height:48px;display:inline-flex;align-items:center;justify-content:center;padding:0 12px;box-sizing:border-box;text-align:center;white-space:nowrap}
+    .toolbar-separator{width:1px;height:34px;margin:0 4px 0 6px;background:rgba(148,163,184,.28);border-radius:999px;flex:0 0 auto}
     .logout-btn{white-space:nowrap}
     .toolbar .action{min-height:44px;padding:12px 14px;border-radius:12px;align-self:stretch;display:inline-flex;align-items:center;justify-content:center}
+    .toolbar-actions>.action{padding:0 12px}
     input,select,button,textarea{font:inherit}
     input,select,button{border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.055);color:var(--text);padding:12px 14px;outline:none}
     body.light input,body.light select,body.light button{background:rgba(255,255,255,.74)}
@@ -318,7 +327,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       .toolbar input[type="search"]{flex-basis:100%;min-width:0;width:100%;height:48px}
       .toolbar-actions{width:100%;margin-left:0;display:grid;grid-template-columns:1fr 1fr;gap:9px;align-items:start}
       .toolbar-actions>*{min-width:0;align-self:start}
-      .toolbar-actions button,.toolbar-actions .action{width:100%;justify-content:center;text-align:center;min-height:48px}.toolbar-actions>.action,.toolbar-actions>button,.toolbar-actions>.dropdown>button{height:48px}.logout-btn{display:flex;align-items:center;justify-content:center}
+      .toolbar-actions button,.toolbar-actions .action{width:100%;min-width:0;justify-content:center;text-align:center;min-height:48px}.toolbar-actions>.action,.toolbar-actions>button,.toolbar-actions>.dropdown>button{height:48px}.toolbar-separator{display:none}#refreshIndex{grid-column:2}.logout-btn{display:flex;align-items:center;justify-content:center}
       .dropdown{width:100%;min-width:0;align-self:start;z-index:90}
       .dropdown.open{z-index:140}
       .dropdown>button{width:100%;min-height:48px}
@@ -622,6 +631,39 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       }
     }
 
+
+  /* Final mobile toolbar cleanup */
+  @media(max-width:760px){
+    .header-actions{justify-content:flex-start!important;width:100%!important}
+    .login-pill{align-self:flex-start;max-width:100%}
+    .toolbar{gap:10px!important}
+    .toolbar-actions{
+      width:100%!important;
+      margin-left:0!important;
+      display:grid!important;
+      grid-template-columns:repeat(2,minmax(0,1fr))!important;
+      gap:10px!important;
+      align-items:stretch!important;
+    }
+    .toolbar-actions>*{min-width:0!important}
+    .toolbar-actions>.dropdown,
+    .toolbar-actions>button,
+    .toolbar-actions>.action{width:100%!important}
+    .toolbar-actions>.dropdown>button,
+    #refreshIndex{
+      width:100%!important;
+      min-width:0!important;
+      min-height:48px!important;
+      height:48px!important;
+    }
+    #refreshIndex{grid-column:1 / -1!important}
+  }
+
+  @media(max-width:430px){
+    .toolbar-actions{grid-template-columns:1fr!important}
+    #refreshIndex{grid-column:auto!important}
+  }
+
   </style>
 </head>
 <body>
@@ -647,7 +689,16 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
         <p class="subtitle">Server-hosted file browser and editor for your content.</p>
       </div>
       <div class="header-actions">
-        <div class="badge"><span class="badge-dot"></span>Online</div>
+        <div class="login-pill">
+          <span class="badge-dot"></span>
+          <span>Logged in</span>
+          <a class="logout-icon" href="?logout=1" title="Log out" aria-label="Log out">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3v9" stroke-width="2" stroke-linecap="round"/>
+              <path d="M7.05 6.6a8 8 0 1 0 9.9 0" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </a>
+        </div>
       </div>
     </header>
 
@@ -670,8 +721,8 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
         </div>
         <input id="uploadInput" type="file" multiple hidden />
         <input id="uploadFolderInput" type="file" webkitdirectory directory multiple hidden />
+        <span class="toolbar-separator" aria-hidden="true"></span>
         <button id="refreshIndex" type="button">Refresh</button>
-        <a class="action logout-btn" href="?logout=1">Log out</a>
       </div>
     </section>
 

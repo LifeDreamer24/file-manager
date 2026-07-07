@@ -656,7 +656,7 @@ if ($action === 'list') {
                 'modified' => filemtime($full) ?: 0,
                 'editable' => false,
                 'extractable' => false,
-                'public_url' => null,
+                'public_url' => public_url($config, $entryRel),
                 'download_url' => 'api.php?action=download&path=' . rawurlencode($entryRel),
                 'download_name' => $name . '.zip',
             ];

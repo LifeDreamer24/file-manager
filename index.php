@@ -248,6 +248,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     .login-card h1{font-size:2rem}
     .login-card form{display:grid;gap:12px;margin-top:18px}
     .login-card .error{padding:10px 12px;border:1px solid rgba(255,93,93,.4);border-radius:10px;background:rgba(255,93,93,.12)}
+    .login-card .subtitle + .error{margin-top:14px}
     .upload-progress{display:none;margin:0 10px 10px;color:var(--muted);font-size:.9rem}
     .upload-progress.show{display:block}
 

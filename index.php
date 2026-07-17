@@ -152,10 +152,6 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       border-bottom-left-radius:14px;
       border-bottom-right-radius:14px;
     }
-    #browserPanel #content>.bulkbar:first-child{
-      border-radius:0;
-    }
-
     .editor-shell{position:relative;z-index:5}
     #browserPanel .item-menu.open{z-index:300}
     #browserPanel .item-menu-list{z-index:301}
@@ -170,9 +166,10 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     .breadcrumbs button{padding:6px 9px;border-radius:9px;background:transparent}
     .sep{color:#5e6977}
     .stats{color:var(--muted);font-size:.92rem;white-space:nowrap}
-    .bulkbar{display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;background:rgba(23,26,33,.97)}
-    .bulkbar.show{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));z-index:500;display:flex;width:min(1080px,calc(100vw - 32px));border:1px solid rgba(66,211,146,.48);border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.04);backdrop-filter:blur(14px);transform:translateX(-50%)}
-    body.light .bulkbar{background:rgba(255,255,255,.97)}
+    .bulkbar{display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;background:rgba(23,26,33,.96)}
+    .bulkbar.show{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));z-index:500;display:flex;width:min(1080px,calc(100vw - 32px));border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.38),0 0 0 1px rgba(66,211,146,.10);backdrop-filter:blur(14px);transform:translateX(-50%);isolation:isolate}
+    body.light .bulkbar{background:rgba(255,255,255,.96)}
+    .bulkbar .action{border-radius:10px}
     .bulkbar.show~.file-table{margin-bottom:96px}
     .bulk-summary{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.92rem;line-height:1.35}
     .bulk-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -772,11 +769,6 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
   /* When a mobile row menu is open, reserve space below the browser panel so the dropdown does not overlap the footer/background */
   @media(max-width:760px){
     body.mobile-menu-open #browserPanel{margin-bottom:260px!important}
-  }
-
-  /* Mobile selection bar cleanup */
-  @media(max-width:760px){
-    #browserPanel #content>.bulkbar:first-child{border-bottom:1px solid var(--line)!important;border-bottom-left-radius:0!important;border-bottom-right-radius:0!important}
   }
 
   </style>

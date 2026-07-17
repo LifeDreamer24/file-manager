@@ -214,6 +214,15 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     body.light th{background:rgba(17,24,39,.035)}
     tbody tr:last-child td{border-bottom:none}
     tbody tr:hover{background:rgba(66,211,146,.075)}
+    @media(min-width:761px){
+      .file-table tbody tr:last-child:hover,
+      .file-table tbody tr:last-child.selected{background:transparent}
+      .file-table tbody tr:last-child:hover>td{background:rgba(66,211,146,.075)}
+      .file-table tbody tr:last-child.selected>td,
+      .file-table tbody tr:last-child.selected:hover>td{background:rgba(66,211,146,.115)}
+      .file-table tbody tr:last-child>td:first-child{border-bottom-left-radius:13px}
+      .file-table tbody tr:last-child>td:last-child{border-bottom-right-radius:13px}
+    }
     .name{display:flex;align-items:center;gap:10px;min-width:0;max-width:100%}
     .name .truncate-text{flex:1 1 auto;min-width:0}
     .path-cell .truncate-text{display:block;max-width:100%;white-space:nowrap;overflow:hidden}

@@ -170,8 +170,10 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     .breadcrumbs button{padding:6px 9px;border-radius:9px;background:transparent}
     .sep{color:#5e6977}
     .stats{color:var(--muted);font-size:.92rem;white-space:nowrap}
-    .bulkbar{display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line);background:rgba(66,211,146,.08)}
-    .bulkbar.show{display:flex}
+    .bulkbar{display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;background:rgba(23,26,33,.97)}
+    .bulkbar.show{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));z-index:500;display:flex;width:min(1080px,calc(100vw - 32px));border:1px solid rgba(66,211,146,.48);border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.04);backdrop-filter:blur(14px);transform:translateX(-50%)}
+    body.light .bulkbar{background:rgba(255,255,255,.97)}
+    .bulkbar.show~.file-table{margin-bottom:96px}
     .bulk-summary{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.92rem;line-height:1.35}
     .bulk-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .bulk-actions .action{min-height:32px}
@@ -251,8 +253,20 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     .login-card form{display:grid;gap:12px;margin-top:18px}
     .login-card .error{padding:10px 12px;border:1px solid rgba(255,93,93,.4);border-radius:10px;background:rgba(255,93,93,.12)}
     .login-card .subtitle + .error{margin-top:14px}
-    .upload-progress{display:none;margin:0 10px 10px;color:var(--muted);font-size:.9rem}
+    .upload-progress{display:none;margin:12px 14px 14px;padding:12px 14px;border:1px solid rgba(66,211,146,.34);border-radius:12px;background:rgba(66,211,146,.08);color:var(--muted);font-size:.9rem}
     .upload-progress.show{display:block}
+    .upload-progress.error{border-color:rgba(255,93,93,.48);background:rgba(255,93,93,.10)}
+    .upload-progress.partial{border-color:rgba(255,209,102,.48);background:rgba(255,209,102,.09)}
+    .upload-progress.error .upload-progress-bar{background:var(--bad);box-shadow:0 0 14px rgba(255,93,93,.32)}
+    .upload-progress.partial .upload-progress-bar{background:var(--warn);box-shadow:0 0 14px rgba(255,209,102,.28)}
+    .upload-progress-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
+    .upload-progress-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+    .upload-progress-percent{flex:0 0 auto;font-variant-numeric:tabular-nums;color:var(--accent2);font-weight:700}
+    .upload-progress-track{height:9px;overflow:hidden;border-radius:999px;background:rgba(148,163,184,.20)}
+    .upload-progress-bar{width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 14px rgba(66,211,146,.38);transition:width .16s ease}
+    .upload-progress-bar.indeterminate{width:35%;animation:uploadIndeterminate 1.1s ease-in-out infinite}
+    .upload-progress-detail{margin-top:8px;min-height:1.35em;line-height:1.35}
+    @keyframes uploadIndeterminate{from{transform:translateX(-120%)}to{transform:translateX(340%)}}
 
     .editor-shell{display:grid;grid-template-rows:0fr;opacity:0;transform:translateY(-8px) scale(.992);transition:grid-template-rows .2s ease,opacity .16s ease,transform .16s ease;margin-top:12px}
     .editor-shell.open{grid-template-rows:1fr;opacity:1;transform:translateY(0) scale(1)}
@@ -346,8 +360,9 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       .name,.editor-head h2,.editor-path,.subtitle,button,.action{overflow-wrap:anywhere;word-break:break-word}
       .upload-progress{margin:0 12px 10px}
       .hide-sm{display:none!important}
-      .bulkbar{position:sticky;top:8px;z-index:7;align-items:stretch;padding:12px;background:rgba(42,69,59,.96);backdrop-filter:blur(12px)}
-      body.light .bulkbar{background:rgba(225,248,238,.96)}
+      .bulkbar{bottom:max(12px,env(safe-area-inset-bottom));width:calc(100vw - 24px);align-items:stretch;padding:12px}
+      .bulkbar.show~.file-table{margin-bottom:238px}
+      body.light .bulkbar{background:rgba(255,255,255,.97)}
       .bulk-summary{width:100%;justify-content:center;font-size:1rem}
       .bulk-actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
       .bulk-actions button,.bulk-actions .action{width:100%;justify-content:center;text-align:center;min-height:44px}
@@ -831,7 +846,16 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
         <nav id="breadcrumbs" class="breadcrumbs" aria-label="Breadcrumb"></nav>
         <div id="stats" class="stats">Loading...</div>
       </div>
-      <div id="uploadProgress" class="upload-progress"></div>
+      <div id="uploadProgress" class="upload-progress" role="status" aria-live="polite" aria-atomic="true">
+        <div class="upload-progress-head">
+          <strong id="uploadProgressLabel" class="upload-progress-label">Preparing upload...</strong>
+          <span id="uploadProgressPercent" class="upload-progress-percent">0%</span>
+        </div>
+        <div id="uploadProgressTrack" class="upload-progress-track" role="progressbar" aria-label="Upload progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div id="uploadProgressBar" class="upload-progress-bar"></div>
+        </div>
+        <div id="uploadProgressDetail" class="upload-progress-detail"></div>
+      </div>
       <div id="content"><div class="message">Loading folder...</div></div>
     </section>
 
@@ -923,6 +947,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     const content=$("content"),breadcrumbs=$("breadcrumbs"),stats=$("stats"),search=$("search");
     const editorShell=$("editorShell"),editorName=$("editorName"),editorPath=$("editorPath"),editorStatus=$("editorStatus"),editorText=$("editorText"),lineNumbers=$("lineNumbers");
     const uploadOverlay=$("uploadOverlay"),uploadInput=$("uploadInput"),uploadFolderInput=$("uploadFolderInput"),uploadProgress=$("uploadProgress");
+    const uploadProgressLabel=$("uploadProgressLabel"),uploadProgressPercent=$("uploadProgressPercent"),uploadProgressTrack=$("uploadProgressTrack"),uploadProgressBar=$("uploadProgressBar"),uploadProgressDetail=$("uploadProgressDetail");
     const moveModal=$("moveModal"),moveFolderList=$("moveFolderList"),moveBreadcrumbs=$("moveBreadcrumbs"),moveCurrentPath=$("moveCurrentPath"),moveSelectedCount=$("moveSelectedCount"),moveHint=$("moveHint"),moveConfirm=$("moveConfirm");
 
     function cleanPath(path){return String(path||"").replace(/^\/+|\/+$/g,"").replace(/\/{2,}/g,"/")}
@@ -987,7 +1012,12 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     function simpleUploadReason(reason){reason=String(reason||"").toLowerCase();if(reason.includes("protected")||reason.includes("server behavior")||reason.includes("file manager"))return"access protected/system file";if(reason.includes("dot")||reason.includes("hidden"))return"hidden/system file";const ext=reason.match(/ending in \.([a-z0-9]+)/i)||reason.match(/extension \.([a-z0-9]+)/i);if(ext)return`blocked .${ext[1]} file`;if(reason.includes("too large"))return"file too large";return"blocked file"}
     function summarizeUploadErrors(errors){const groups=new Map();for(const err of errors||[]){const text=String(err||"").trim();let name="";let reason=text;const match=text.match(/^(.+?) was not uploaded\.\s*(.+)$/);if(match){name=match[1];reason=match[2]}const label=simpleUploadReason(reason);if(!groups.has(label))groups.set(label,{count:0,names:[]});const group=groups.get(label);group.count++;if(name)group.names.push(name)}return [...groups.entries()].map(([label,group])=>{const names=group.names.slice(0,4).join(", ")+(group.names.length>4?", ...":"");const filePart=names||"file";const countPart=group.count>1?` (x${group.count})`:"";return `Blocked ${filePart} upload: ${label}${countPart}`}).join(" | ")}
     function fileRelativePath(file){return file.relativePath||file.webkitRelativePath||file.name}
-    async function uploadFiles(files){files=[...files];if(!files.length)return;const form=new FormData();form.append("path",state.path);for(const file of files){form.append("files[]",file,file.name);form.append("paths[]",fileRelativePath(file))}toast(`Uploading ${files.length} file${files.length===1?"":"s"}...`);uploadProgress.classList.remove("show");uploadProgress.textContent="";try{const r=await fetch(apiUrl("upload",{path:state.path}),{method:"POST",credentials:"same-origin",body:form});const j=await r.json();const uploadedCount=(j.uploaded||[]).length;if(uploadedCount)toast(j.message||`${uploadedCount} file${uploadedCount===1?"":"s"} uploaded.`);if(j.errors&&j.errors.length)toast(summarizeUploadErrors(j.errors));if(!uploadedCount&&(!j.errors||!j.errors.length)&&!j.ok)throw new Error(j.error||"Upload failed");await loadFolder()}catch(e){toast(e.message||String(e))}finally{uploadProgress.classList.remove("show");uploadProgress.textContent="";uploadInput.value="";uploadFolderInput.value=""}}
+    let uploadInProgress=false,uploadProgressTimer=0;
+    function setUploadControlsDisabled(disabled){document.querySelectorAll("#uploadMenuBtn,[data-upload]").forEach(button=>button.disabled=disabled);uploadInput.disabled=disabled;uploadFolderInput.disabled=disabled;$("browserPanel").setAttribute("aria-busy",disabled?"true":"false")}
+    function showUploadProgress(percent,label,detail="",status=""){clearTimeout(uploadProgressTimer);uploadProgress.classList.remove("error","partial");if(status)uploadProgress.classList.add(status);uploadProgress.classList.add("show");uploadProgressLabel.textContent=label;uploadProgressDetail.textContent=detail;const determinate=typeof percent==="number"&&Number.isFinite(percent);if(determinate){const value=Math.max(0,Math.min(100,Math.round(percent)));uploadProgressBar.classList.remove("indeterminate");uploadProgressBar.style.width=value+"%";uploadProgressPercent.textContent=value+"%";uploadProgressTrack.setAttribute("aria-valuenow",String(value))}else{uploadProgressBar.style.width="";uploadProgressBar.classList.add("indeterminate");uploadProgressPercent.textContent="Working...";uploadProgressTrack.removeAttribute("aria-valuenow")}}
+    function hideUploadProgress(delay=2500){clearTimeout(uploadProgressTimer);uploadProgressTimer=setTimeout(()=>{uploadProgress.classList.remove("show","error","partial")},delay)}
+    function uploadRequest(form,fileCount){return new Promise((resolve,reject)=>{const xhr=new XMLHttpRequest();xhr.open("POST",apiUrl("upload",{path:state.path}),true);xhr.withCredentials=true;xhr.upload.addEventListener("progress",event=>{if(event.lengthComputable&&event.total>0){const percent=Math.max(1,Math.min(99,Math.round(event.loaded/event.total*100)));showUploadProgress(percent,"Uploading "+fileCount+" file"+(fileCount===1?"":"s")+"...",formatBytes(event.loaded)+" of "+formatBytes(event.total))}else{showUploadProgress(null,"Uploading "+fileCount+" file"+(fileCount===1?"":"s")+"...",formatBytes(event.loaded)+" sent")}});xhr.upload.addEventListener("load",()=>showUploadProgress(100,"Processing uploaded files...","Transfer complete; waiting for the server."));xhr.addEventListener("load",()=>{if(xhr.status===401){location.reload();reject(new Error("Your session expired. Please sign in again."));return}if(xhr.status===413){reject(new Error("The server rejected this upload because it exceeds its configured request-size limit."));return}let data;try{data=JSON.parse(xhr.responseText||"{}")}catch{reject(new Error("The server returned an invalid response. The upload may exceed the PHP post_max_size or upload_max_filesize limit."));return}if(!data||typeof data!=="object"){reject(new Error("The server returned an invalid upload response."));return}resolve(data)});xhr.addEventListener("error",()=>reject(new Error("The upload connection failed. Check your connection and try again.")));xhr.addEventListener("abort",()=>reject(new Error("The upload was cancelled.")));xhr.addEventListener("timeout",()=>reject(new Error("The upload timed out. Please try again.")));xhr.send(form)})}
+    async function uploadFiles(files){files=[...files];if(!files.length)return;if(uploadInProgress){toast("An upload is already in progress.");return}uploadInProgress=true;setUploadControlsDisabled(true);const form=new FormData();form.append("path",state.path);for(const file of files){form.append("files[]",file,file.name);form.append("paths[]",fileRelativePath(file))}const totalBytes=files.reduce((sum,file)=>sum+Number(file.size||0),0);showUploadProgress(0,"Preparing "+files.length+" file"+(files.length===1?"":"s")+"...",formatBytes(totalBytes)+" total");toast("Uploading "+files.length+" file"+(files.length===1?"":"s")+"...");try{const j=await uploadRequest(form,files.length);const uploadedCount=(j.uploaded||[]).length;const errors=j.errors||[];if(!uploadedCount)throw new Error(j.error||(errors.length?summarizeUploadErrors(errors):"Upload failed"));toast(j.message||uploadedCount+" file"+(uploadedCount===1?"":"s")+" uploaded.");if(errors.length)toast(summarizeUploadErrors(errors));const partial=errors.length>0;showUploadProgress(100,partial?"Upload finished with warnings":"Upload complete",partial?"Uploaded "+uploadedCount+" of "+files.length+" files.":uploadedCount+" file"+(uploadedCount===1?"":"s")+" uploaded successfully.",partial?"partial":"");await loadFolder();hideUploadProgress(partial?5000:2500)}catch(e){const message=e.message||String(e);showUploadProgress(100,"Upload failed",message,"error");toast(message);hideUploadProgress(8000)}finally{uploadInProgress=false;setUploadControlsDisabled(false);uploadInput.value="";uploadFolderInput.value=""}}
     function readEntryFile(entry,pathPrefix=""){return new Promise(resolve=>{entry.file(file=>{file.relativePath=pathPrefix+file.name;resolve([file])},()=>resolve([]))})}
     function readDirectoryEntries(reader){return new Promise(resolve=>{const entries=[];function readBatch(){reader.readEntries(batch=>{if(!batch.length){resolve(entries);return}entries.push(...batch);readBatch()},()=>resolve(entries))}readBatch()})}
     async function readEntry(entry,pathPrefix=""){if(entry.isFile)return readEntryFile(entry,pathPrefix);if(entry.isDirectory){const dirPrefix=pathPrefix+entry.name+"/";const reader=entry.createReader();const entries=await readDirectoryEntries(reader);const files=[];for(const child of entries)files.push(...await readEntry(child,dirPrefix));return files}return[]}

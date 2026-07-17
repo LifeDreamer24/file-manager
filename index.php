@@ -166,11 +166,12 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     .breadcrumbs button{padding:6px 9px;border-radius:9px;background:transparent}
     .sep{color:#5e6977}
     .stats{color:var(--muted);font-size:.92rem;white-space:nowrap}
+    .selection-bar-host{margin-top:12px}
+    .selection-bar-host:empty{display:none}
     .bulkbar{display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;background:rgba(23,26,33,.96)}
-    .bulkbar.show{position:absolute;left:0;top:calc(100% + 12px);z-index:500;display:flex;width:100%;border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.38),0 0 0 1px rgba(66,211,146,.10);backdrop-filter:blur(14px);transform:none;isolation:isolate}
+    .bulkbar.show{position:relative;z-index:30;display:flex;width:100%;border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.38),0 0 0 1px rgba(66,211,146,.10);backdrop-filter:blur(14px);isolation:isolate}
     body.light .bulkbar{background:rgba(255,255,255,.96)}
     .bulkbar .action{border-radius:10px}
-    #browserPanel:has(.bulkbar.show){margin-bottom:96px}
     .bulk-summary{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.92rem;line-height:1.35}
     .bulk-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .bulk-actions .action{min-height:32px}
@@ -358,16 +359,18 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       .dropdown-menu button{min-height:44px;text-align:center}
       .toolbar-actions .dropdown.open+*,.toolbar-actions .dropdown.open~*{align-self:start}
       .panel,.editor,.login-card{border-radius:16px}
-      .pathbar,.editor-head{align-items:flex-start;flex-direction:column;padding:12px}
-      .breadcrumbs,.move-path{width:100%;flex-wrap:nowrap;overflow-x:auto;overflow-y:visible;padding:4px 6px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+      .pathbar{align-items:flex-start;flex-direction:column;gap:8px;padding:10px 12px}
+      .editor-head{align-items:flex-start;flex-direction:column;padding:12px}
+      .breadcrumbs{width:100%;flex-wrap:nowrap;overflow-x:auto;overflow-y:visible;padding:0;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+      .move-path{width:100%;flex-wrap:nowrap;overflow-x:auto;overflow-y:visible;padding:4px 6px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
       .breadcrumbs::-webkit-scrollbar,.move-path::-webkit-scrollbar{display:none}
       .breadcrumbs button,.move-path button{white-space:nowrap;min-height:40px;position:relative}
       .stats{white-space:normal;font-size:.86rem;line-height:1.35}
       .name,.editor-head h2,.editor-path,.subtitle,button,.action{overflow-wrap:anywhere;word-break:break-word}
       .upload-progress{margin:0 12px 10px}
       .hide-sm{display:none!important}
-      .bulkbar{top:calc(100% + 10px);width:100%;align-items:stretch;padding:12px}
-      #browserPanel:has(.bulkbar.show){margin-bottom:238px}
+      .selection-bar-host{margin-top:10px}
+      .bulkbar{width:100%;align-items:stretch;padding:12px}
       body.light .bulkbar{background:rgba(255,255,255,.97)}
       .bulk-summary{width:100%;justify-content:center;font-size:1rem}
       .bulk-actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -436,7 +439,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       .login-card{padding:20px}
     }
     @media(max-width:420px){
-      .toolbar-actions,.actions,.bulk-actions,.editor-tools,.move-foot .bulk-actions{grid-template-columns:1fr}
+      .toolbar-actions,.actions,.editor-tools,.move-foot .bulk-actions{grid-template-columns:1fr}
       .action{font-size:.95rem}
       tbody tr{grid-template-columns:40px minmax(0,1fr);padding:10px}
       .select-col input{width:21px;height:21px;min-width:21px;min-height:21px}
@@ -859,6 +862,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       </div>
       <div id="content"><div class="message">Loading folder...</div></div>
     </section>
+    <div id="selectionBarHost" class="selection-bar-host"></div>
 
     <section id="editorShell" class="editor-shell" aria-label="File editor">
       <div>
@@ -945,7 +949,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
   <script>
     const state={path:new URL(location.href).searchParams.get("path")||"",entries:[],selected:new Set(),movePicker:null,editing:null,originalText:"",dirty:false,wrap:false,theme:localStorage.getItem("fastdl-manager-theme")||"dark"};
     const $=id=>document.getElementById(id);
-    const content=$("content"),breadcrumbs=$("breadcrumbs"),stats=$("stats"),search=$("search");
+    const content=$("content"),selectionBarHost=$("selectionBarHost"),breadcrumbs=$("breadcrumbs"),stats=$("stats"),search=$("search");
     const editorShell=$("editorShell"),editorName=$("editorName"),editorPath=$("editorPath"),editorStatus=$("editorStatus"),editorText=$("editorText"),lineNumbers=$("lineNumbers");
     const uploadOverlay=$("uploadOverlay"),uploadInput=$("uploadInput"),uploadFolderInput=$("uploadFolderInput"),uploadProgress=$("uploadProgress");
     const uploadProgressLabel=$("uploadProgressLabel"),uploadProgressPercent=$("uploadProgressPercent"),uploadProgressTrack=$("uploadProgressTrack"),uploadProgressBar=$("uploadProgressBar"),uploadProgressDetail=$("uploadProgressDetail");
@@ -971,8 +975,8 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       return truncateName(name,isDir?Math.max(18,max-3):max);
     }
     function truncatePath(path,max=42){path=String(path||"");if(path.length<=max)return path;const marker="(...)";const tail=Math.min(14,Math.max(8,max-12));const head=Math.max(4,max-marker.length-tail);return path.slice(0,head)+marker+path.slice(-tail)}
-    function selectionBar(){const selected=selectedItems(),count=selected.length;if(!count)return`<div class="bulkbar" id="bulkbar" aria-live="polite"></div>`;const extractable=selected.some(i=>i.type==="file"&&i.extractable);return`<div class="bulkbar show" id="bulkbar" aria-live="polite"><div class="bulk-summary"><strong>${count}</strong> selected</div><div class="bulk-actions"><button class="action" type="button" onclick="downloadSelected()">Download as ZIP</button><button class="action" type="button" onclick="copySelectedUrls()">Copy URLs</button><button class="action" type="button" onclick="moveSelectedPrompt()">Move</button><button class="action" type="button" onclick="extractSelected()" ${extractable?"":"disabled"}>Extract</button><button class="action danger" type="button" onclick="deleteSelected()">Delete</button><button class="action" type="button" onclick="clearSelection()">Deselect</button></div></div>`}
-    function render(s){renderBreadcrumbs();const entries=currentEntries();if(!s){const folders=entries.filter(i=>i.type==="dir").length,files=entries.filter(i=>i.type==="file").length,total=entries.filter(i=>i.type==="file").reduce((a,i)=>a+Number(i.size||0),0);s={folders,files,total_size_label:formatBytes(total)}}const selectedCount=selectedItems().length;stats.textContent=`${s.folders} folder${s.folders===1?"":"s"} · ${s.files} file${s.files===1?"":"s"} · ${s.total_size_label}${selectedCount?` · ${selectedCount} selected`:""}`;if(!entries.length){content.innerHTML=`${selectionBar()}<div class="message">No files found in this folder.</div>`;setupSelectionControls();setupDragAndDrop();return}content.innerHTML=`${selectionBar()}<table class="file-table manager-table"><thead><tr><th class="select-col"><input id="selectAll" type="checkbox" aria-label="Select all visible items" onchange="toggleSelectAll(this.checked)"></th><th class="name-cell">Name</th><th class="hide-sm modified-cell">Modified</th><th class="right size-cell">Size</th><th class="right actions-cell"></th></tr></thead><tbody>${entries.map(renderRow).join("")}</tbody></table>`;setupSelectionControls();setupDragAndDrop()}
+    function selectionBar(){const selected=selectedItems(),count=selected.length;if(!count)return"";const extractable=selected.some(i=>i.type==="file"&&i.extractable);return`<div class="bulkbar show" id="bulkbar" aria-live="polite"><div class="bulk-summary"><strong>${count}</strong> selected</div><div class="bulk-actions"><button class="action" type="button" onclick="downloadSelected()">Download as ZIP</button><button class="action" type="button" onclick="copySelectedUrls()">Copy URLs</button><button class="action" type="button" onclick="moveSelectedPrompt()">Move</button><button class="action" type="button" onclick="extractSelected()" ${extractable?"":"disabled"}>Extract</button><button class="action danger" type="button" onclick="deleteSelected()">Delete</button><button class="action" type="button" onclick="clearSelection()">Deselect</button></div></div>`}
+    function render(s){renderBreadcrumbs();selectionBarHost.innerHTML=selectionBar();const entries=currentEntries();if(!s){const folders=entries.filter(i=>i.type==="dir").length,files=entries.filter(i=>i.type==="file").length,total=entries.filter(i=>i.type==="file").reduce((a,i)=>a+Number(i.size||0),0);s={folders,files,total_size_label:formatBytes(total)}}const selectedCount=selectedItems().length;stats.textContent=`${s.folders} folder${s.folders===1?"":"s"} · ${s.files} file${s.files===1?"":"s"} · ${s.total_size_label}${selectedCount?` · ${selectedCount} selected`:""}`;if(!entries.length){content.innerHTML=`<div class="message">No files found in this folder.</div>`;setupSelectionControls();setupDragAndDrop();return}content.innerHTML=`<table class="file-table manager-table"><thead><tr><th class="select-col"><input id="selectAll" type="checkbox" aria-label="Select all visible items" onchange="toggleSelectAll(this.checked)"></th><th class="name-cell">Name</th><th class="hide-sm modified-cell">Modified</th><th class="right size-cell">Size</th><th class="right actions-cell"></th></tr></thead><tbody>${entries.map(renderRow).join("")}</tbody></table>`;setupSelectionControls();setupDragAndDrop()}
     function itemMenu(label,items){return`<div class="item-menu" data-item-menu><button class="action item-menu-toggle" type="button" aria-label="More actions for ${escapeAttr(label)}" aria-haspopup="menu" aria-expanded="false">⋯</button><div class="item-menu-list" role="menu">${items}</div></div>`}
     function renderRow(item){
       const isDir=item.type==="dir",icon=isDir?"📁":fileIcon(item.name),isSelected=state.selected.has(item.path);
@@ -995,8 +999,8 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     }
     function openFolder(path){state.path=cleanPath(path);state.selected.clear();search.value="";const u=new URL(location.href);if(state.path)u.searchParams.set("path",state.path);else u.searchParams.delete("path");history.pushState(null,"",u);loadFolder()}
     function renderBreadcrumbs(){const parts=state.path?state.path.split("/"):[];let html=`<button type="button" data-drop-folder="" onclick="openFolder('')">root</button>`;parts.forEach((part,index)=>{const path=parts.slice(0,index+1).join("/");html+=`<span class="sep">/</span><button type="button" data-drop-folder="${escapeAttr(path)}" onclick="openFolder('${escapeJs(path)}')">${escapeHtml(part)}</button>`});breadcrumbs.innerHTML=html}
-    function renderLoading(){renderBreadcrumbs();stats.textContent="Loading...";content.innerHTML=`<div class="message">Loading folder...</div>`}
-    function showError(message){renderBreadcrumbs();stats.textContent="Error";content.innerHTML=`<div class="message error"><strong>Could not load folder.</strong><br>${escapeHtml(message)}</div>`}
+    function renderLoading(){renderBreadcrumbs();selectionBarHost.innerHTML="";stats.textContent="Loading...";content.innerHTML=`<div class="message">Loading folder...</div>`}
+    function showError(message){renderBreadcrumbs();selectionBarHost.innerHTML="";stats.textContent="Error";content.innerHTML=`<div class="message error"><strong>Could not load folder.</strong><br>${escapeHtml(message)}</div>`}
 
 
     function setupSelectionControls(){const selectAll=$("selectAll");if(!selectAll)return;const entries=currentEntries();const selectedVisible=entries.filter(i=>state.selected.has(i.path)).length;selectAll.checked=entries.length>0&&selectedVisible===entries.length;selectAll.indeterminate=selectedVisible>0&&selectedVisible<entries.length}

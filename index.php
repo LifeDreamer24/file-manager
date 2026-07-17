@@ -167,7 +167,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     .sep{color:#5e6977}
     .stats{color:var(--muted);font-size:.92rem;white-space:nowrap}
     .bulkbar{display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;background:rgba(23,26,33,.96)}
-    .bulkbar.show{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));z-index:500;display:flex;width:min(1080px,calc(100vw - 32px));border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.38),0 0 0 1px rgba(66,211,146,.10);backdrop-filter:blur(14px);transform:translateX(-50%);isolation:isolate}
+    .bulkbar.show{position:absolute;left:0;top:calc(100% + 12px);z-index:500;display:flex;width:100%;border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.38),0 0 0 1px rgba(66,211,146,.10);backdrop-filter:blur(14px);transform:none;isolation:isolate}
     body.light .bulkbar{background:rgba(255,255,255,.96)}
     .bulkbar .action{border-radius:10px}
     #browserPanel:has(.bulkbar.show){margin-bottom:96px}
@@ -366,7 +366,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       .name,.editor-head h2,.editor-path,.subtitle,button,.action{overflow-wrap:anywhere;word-break:break-word}
       .upload-progress{margin:0 12px 10px}
       .hide-sm{display:none!important}
-      .bulkbar{bottom:max(12px,env(safe-area-inset-bottom));width:calc(100vw - 24px);align-items:stretch;padding:12px}
+      .bulkbar{top:calc(100% + 10px);width:100%;align-items:stretch;padding:12px}
       #browserPanel:has(.bulkbar.show){margin-bottom:238px}
       body.light .bulkbar{background:rgba(255,255,255,.97)}
       .bulk-summary{width:100%;justify-content:center;font-size:1rem}

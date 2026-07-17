@@ -367,7 +367,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       .breadcrumbs button,.move-path button{white-space:nowrap;min-height:40px;position:relative}
       .stats{white-space:normal;font-size:.86rem;line-height:1.35}
       .name,.editor-head h2,.editor-path,.subtitle,button,.action{overflow-wrap:anywhere;word-break:break-word}
-      .upload-progress{margin:0 12px 10px}
+      .upload-progress{margin:10px 12px}
       .hide-sm{display:none!important}
       .selection-bar-host{margin-top:10px}
       .bulkbar{width:100%;align-items:stretch;padding:12px}

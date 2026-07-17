@@ -170,7 +170,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     .bulkbar.show{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));z-index:500;display:flex;width:min(1080px,calc(100vw - 32px));border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.38),0 0 0 1px rgba(66,211,146,.10);backdrop-filter:blur(14px);transform:translateX(-50%);isolation:isolate}
     body.light .bulkbar{background:rgba(255,255,255,.96)}
     .bulkbar .action{border-radius:10px}
-    .bulkbar.show~.file-table{margin-bottom:96px}
+    #browserPanel:has(.bulkbar.show){margin-bottom:96px}
     .bulk-summary{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.92rem;line-height:1.35}
     .bulk-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .bulk-actions .action{min-height:32px}
@@ -367,7 +367,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       .upload-progress{margin:0 12px 10px}
       .hide-sm{display:none!important}
       .bulkbar{bottom:max(12px,env(safe-area-inset-bottom));width:calc(100vw - 24px);align-items:stretch;padding:12px}
-      .bulkbar.show~.file-table{margin-bottom:238px}
+      #browserPanel:has(.bulkbar.show){margin-bottom:238px}
       body.light .bulkbar{background:rgba(255,255,255,.97)}
       .bulk-summary{width:100%;justify-content:center;font-size:1rem}
       .bulk-actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}

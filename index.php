@@ -367,7 +367,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       .breadcrumbs button,.move-path button{white-space:nowrap;min-height:40px;position:relative}
       .stats{white-space:normal;font-size:.86rem;line-height:1.35}
       .name,.editor-head h2,.editor-path,.subtitle,button,.action{overflow-wrap:anywhere;word-break:break-word}
-      .upload-progress{margin:10px 12px}
+      .upload-progress{margin:10px 12px 0}
       .hide-sm{display:none!important}
       .selection-bar-host{margin-top:10px}
       .bulkbar{width:100%;align-items:stretch;padding:12px}
@@ -419,7 +419,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       textarea{padding:12px 10px;-webkit-overflow-scrolling:touch;resize:vertical}
       .lines{padding:12px 6px}
       .editor-note{font-size:.84rem}
-      .toast{left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));max-width:none}
+      .toast{left:10px;right:10px;top:calc(10px + env(safe-area-inset-top));bottom:auto;max-width:none}
       .upload-overlay{padding:14px}
       .upload-overlay-frame{inset:10px;border-radius:18px}
       .upload-overlay-card{max-width:calc(100vw - 42px);padding:18px}

@@ -136,7 +136,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     button{cursor:pointer;transition:transform .12s ease,border-color .12s ease,background .12s ease,box-shadow .12s ease}
     button:hover{transform:translateY(-1px);border-color:rgba(66,211,146,.75);background:var(--goodsoft)}
     button:disabled{opacity:.48;cursor:not-allowed;transform:none}
-    .panel,.editor,.login-card{border:1px solid var(--line);border-radius:14px;background:rgba(23,26,33,.88);box-shadow:var(--shadow);backdrop-filter:blur(12px)}
+    .panel,.editor,.login-card{border:1px solid var(--line);border-radius:14px;background:rgba(23,26,33,.88);box-shadow:none;backdrop-filter:blur(12px)}
     .panel{overflow:visible}
     .editor,.login-card{overflow:hidden}
     body.light .panel,body.light .editor,body.light .login-card{background:rgba(255,255,255,.88)}
@@ -152,10 +152,6 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       border-bottom-left-radius:14px;
       border-bottom-right-radius:14px;
     }
-    #browserPanel #content>.bulkbar:first-child{
-      border-radius:0;
-    }
-
     .editor-shell{position:relative;z-index:5}
     #browserPanel .item-menu.open{z-index:300}
     #browserPanel .item-menu-list{z-index:301}
@@ -170,8 +166,12 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     .breadcrumbs button{padding:6px 9px;border-radius:9px;background:transparent}
     .sep{color:#5e6977}
     .stats{color:var(--muted);font-size:.92rem;white-space:nowrap}
-    .bulkbar{display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line);background:rgba(66,211,146,.08)}
-    .bulkbar.show{display:flex}
+    .selection-bar-host{margin-top:12px}
+    .selection-bar-host:empty{display:none}
+    .bulkbar{display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;background:rgba(23,26,33,.96)}
+    .bulkbar.show{position:relative;z-index:30;display:flex;width:100%;border:1px solid var(--line);border-radius:14px;box-shadow:none;backdrop-filter:blur(14px);isolation:isolate}
+    body.light .bulkbar{background:rgba(255,255,255,.96)}
+    .bulkbar .action{border-radius:10px}
     .bulk-summary{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.92rem;line-height:1.35}
     .bulk-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .bulk-actions .action{min-height:32px}
@@ -215,6 +215,15 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     body.light th{background:rgba(17,24,39,.035)}
     tbody tr:last-child td{border-bottom:none}
     tbody tr:hover{background:rgba(66,211,146,.075)}
+    @media(min-width:761px){
+      .file-table tbody tr:last-child:hover,
+      .file-table tbody tr:last-child.selected{background:transparent}
+      .file-table tbody tr:last-child:hover>td{background:rgba(66,211,146,.075)}
+      .file-table tbody tr:last-child.selected>td,
+      .file-table tbody tr:last-child.selected:hover>td{background:rgba(66,211,146,.115)}
+      .file-table tbody tr:last-child>td:first-child{border-bottom-left-radius:13px}
+      .file-table tbody tr:last-child>td:last-child{border-bottom-right-radius:13px}
+    }
     .name{display:flex;align-items:center;gap:10px;min-width:0;max-width:100%}
     .name .truncate-text{flex:1 1 auto;min-width:0}
     .path-cell .truncate-text{display:block;max-width:100%;white-space:nowrap;overflow:hidden}
@@ -251,8 +260,20 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     .login-card form{display:grid;gap:12px;margin-top:18px}
     .login-card .error{padding:10px 12px;border:1px solid rgba(255,93,93,.4);border-radius:10px;background:rgba(255,93,93,.12)}
     .login-card .subtitle + .error{margin-top:14px}
-    .upload-progress{display:none;margin:0 10px 10px;color:var(--muted);font-size:.9rem}
+    .upload-progress{display:none;margin:12px 14px 14px;padding:12px 14px;border:1px solid rgba(66,211,146,.34);border-radius:12px;background:rgba(66,211,146,.08);color:var(--muted);font-size:.9rem}
     .upload-progress.show{display:block}
+    .upload-progress.error{border-color:rgba(255,93,93,.48);background:rgba(255,93,93,.10)}
+    .upload-progress.partial{border-color:rgba(255,209,102,.48);background:rgba(255,209,102,.09)}
+    .upload-progress.error .upload-progress-bar{background:var(--bad);box-shadow:0 0 14px rgba(255,93,93,.32)}
+    .upload-progress.partial .upload-progress-bar{background:var(--warn);box-shadow:0 0 14px rgba(255,209,102,.28)}
+    .upload-progress-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
+    .upload-progress-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+    .upload-progress-percent{flex:0 0 auto;font-variant-numeric:tabular-nums;color:var(--accent2);font-weight:700}
+    .upload-progress-track{height:9px;overflow:hidden;border-radius:999px;background:rgba(148,163,184,.20)}
+    .upload-progress-bar{width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 14px rgba(66,211,146,.38);transition:width .16s ease}
+    .upload-progress-bar.indeterminate{width:35%;animation:uploadIndeterminate 1.1s ease-in-out infinite}
+    .upload-progress-detail{margin-top:8px;min-height:1.35em;line-height:1.35}
+    @keyframes uploadIndeterminate{from{transform:translateX(-120%)}to{transform:translateX(340%)}}
 
     .editor-shell{display:grid;grid-template-rows:0fr;opacity:0;transform:translateY(-8px) scale(.992);transition:grid-template-rows .2s ease,opacity .16s ease,transform .16s ease;margin-top:12px}
     .editor-shell.open{grid-template-rows:1fr;opacity:1;transform:translateY(0) scale(1)}
@@ -338,16 +359,19 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       .dropdown-menu button{min-height:44px;text-align:center}
       .toolbar-actions .dropdown.open+*,.toolbar-actions .dropdown.open~*{align-self:start}
       .panel,.editor,.login-card{border-radius:16px}
-      .pathbar,.editor-head{align-items:flex-start;flex-direction:column;padding:12px}
-      .breadcrumbs,.move-path{width:100%;flex-wrap:nowrap;overflow-x:auto;overflow-y:visible;padding:4px 6px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+      .pathbar{align-items:flex-start;flex-direction:column;gap:8px;padding:10px 12px}
+      .editor-head{align-items:flex-start;flex-direction:column;padding:12px}
+      .breadcrumbs{width:100%;flex-wrap:nowrap;overflow-x:auto;overflow-y:visible;padding:0;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+      .move-path{width:100%;flex-wrap:nowrap;overflow-x:auto;overflow-y:visible;padding:4px 6px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
       .breadcrumbs::-webkit-scrollbar,.move-path::-webkit-scrollbar{display:none}
       .breadcrumbs button,.move-path button{white-space:nowrap;min-height:40px;position:relative}
       .stats{white-space:normal;font-size:.86rem;line-height:1.35}
       .name,.editor-head h2,.editor-path,.subtitle,button,.action{overflow-wrap:anywhere;word-break:break-word}
-      .upload-progress{margin:0 12px 10px}
+      .upload-progress{margin:10px 12px 0}
       .hide-sm{display:none!important}
-      .bulkbar{position:sticky;top:8px;z-index:7;align-items:stretch;padding:12px;background:rgba(42,69,59,.96);backdrop-filter:blur(12px)}
-      body.light .bulkbar{background:rgba(225,248,238,.96)}
+      .selection-bar-host{margin-top:10px}
+      .bulkbar{width:100%;align-items:stretch;padding:12px}
+      body.light .bulkbar{background:rgba(255,255,255,.97)}
       .bulk-summary{width:100%;justify-content:center;font-size:1rem}
       .bulk-actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
       .bulk-actions button,.bulk-actions .action{width:100%;justify-content:center;text-align:center;min-height:44px}
@@ -395,7 +419,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       textarea{padding:12px 10px;-webkit-overflow-scrolling:touch;resize:vertical}
       .lines{padding:12px 6px}
       .editor-note{font-size:.84rem}
-      .toast{left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));max-width:none}
+      .toast{left:10px;right:10px;top:calc(10px + env(safe-area-inset-top));bottom:auto;max-width:none}
       .upload-overlay{padding:14px}
       .upload-overlay-frame{inset:10px;border-radius:18px}
       .upload-overlay-card{max-width:calc(100vw - 42px);padding:18px}
@@ -415,7 +439,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       .login-card{padding:20px}
     }
     @media(max-width:420px){
-      .toolbar-actions,.actions,.bulk-actions,.editor-tools,.move-foot .bulk-actions{grid-template-columns:1fr}
+      .toolbar-actions,.actions,.editor-tools,.move-foot .bulk-actions{grid-template-columns:1fr}
       .action{font-size:.95rem}
       tbody tr{grid-template-columns:40px minmax(0,1fr);padding:10px}
       .select-col input{width:21px;height:21px;min-width:21px;min-height:21px}
@@ -759,11 +783,6 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     body.mobile-menu-open #browserPanel{margin-bottom:260px!important}
   }
 
-  /* Mobile selection bar cleanup */
-  @media(max-width:760px){
-    #browserPanel #content>.bulkbar:first-child{border-bottom:1px solid var(--line)!important;border-bottom-left-radius:0!important;border-bottom-right-radius:0!important}
-  }
-
   </style>
 </head>
 <body>
@@ -831,9 +850,19 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
         <nav id="breadcrumbs" class="breadcrumbs" aria-label="Breadcrumb"></nav>
         <div id="stats" class="stats">Loading...</div>
       </div>
-      <div id="uploadProgress" class="upload-progress"></div>
+      <div id="uploadProgress" class="upload-progress" role="status" aria-live="polite" aria-atomic="true">
+        <div class="upload-progress-head">
+          <strong id="uploadProgressLabel" class="upload-progress-label">Preparing upload...</strong>
+          <span id="uploadProgressPercent" class="upload-progress-percent">0%</span>
+        </div>
+        <div id="uploadProgressTrack" class="upload-progress-track" role="progressbar" aria-label="Upload progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div id="uploadProgressBar" class="upload-progress-bar"></div>
+        </div>
+        <div id="uploadProgressDetail" class="upload-progress-detail"></div>
+      </div>
       <div id="content"><div class="message">Loading folder...</div></div>
     </section>
+    <div id="selectionBarHost" class="selection-bar-host"></div>
 
     <section id="editorShell" class="editor-shell" aria-label="File editor">
       <div>
@@ -920,9 +949,10 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
   <script>
     const state={path:new URL(location.href).searchParams.get("path")||"",entries:[],selected:new Set(),movePicker:null,editing:null,originalText:"",dirty:false,wrap:false,theme:localStorage.getItem("fastdl-manager-theme")||"dark"};
     const $=id=>document.getElementById(id);
-    const content=$("content"),breadcrumbs=$("breadcrumbs"),stats=$("stats"),search=$("search");
+    const content=$("content"),selectionBarHost=$("selectionBarHost"),breadcrumbs=$("breadcrumbs"),stats=$("stats"),search=$("search");
     const editorShell=$("editorShell"),editorName=$("editorName"),editorPath=$("editorPath"),editorStatus=$("editorStatus"),editorText=$("editorText"),lineNumbers=$("lineNumbers");
     const uploadOverlay=$("uploadOverlay"),uploadInput=$("uploadInput"),uploadFolderInput=$("uploadFolderInput"),uploadProgress=$("uploadProgress");
+    const uploadProgressLabel=$("uploadProgressLabel"),uploadProgressPercent=$("uploadProgressPercent"),uploadProgressTrack=$("uploadProgressTrack"),uploadProgressBar=$("uploadProgressBar"),uploadProgressDetail=$("uploadProgressDetail");
     const moveModal=$("moveModal"),moveFolderList=$("moveFolderList"),moveBreadcrumbs=$("moveBreadcrumbs"),moveCurrentPath=$("moveCurrentPath"),moveSelectedCount=$("moveSelectedCount"),moveHint=$("moveHint"),moveConfirm=$("moveConfirm");
 
     function cleanPath(path){return String(path||"").replace(/^\/+|\/+$/g,"").replace(/\/{2,}/g,"/")}
@@ -945,8 +975,8 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
       return truncateName(name,isDir?Math.max(18,max-3):max);
     }
     function truncatePath(path,max=42){path=String(path||"");if(path.length<=max)return path;const marker="(...)";const tail=Math.min(14,Math.max(8,max-12));const head=Math.max(4,max-marker.length-tail);return path.slice(0,head)+marker+path.slice(-tail)}
-    function selectionBar(){const selected=selectedItems(),count=selected.length;if(!count)return`<div class="bulkbar" id="bulkbar" aria-live="polite"></div>`;const extractable=selected.some(i=>i.type==="file"&&i.extractable);return`<div class="bulkbar show" id="bulkbar" aria-live="polite"><div class="bulk-summary"><strong>${count}</strong> selected</div><div class="bulk-actions"><button class="action" type="button" onclick="downloadSelected()">Download as ZIP</button><button class="action" type="button" onclick="copySelectedUrls()">Copy URLs</button><button class="action" type="button" onclick="moveSelectedPrompt()">Move</button><button class="action" type="button" onclick="extractSelected()" ${extractable?"":"disabled"}>Extract</button><button class="action danger" type="button" onclick="deleteSelected()">Delete</button><button class="action" type="button" onclick="clearSelection()">Deselect</button></div></div>`}
-    function render(s){renderBreadcrumbs();const entries=currentEntries();if(!s){const folders=entries.filter(i=>i.type==="dir").length,files=entries.filter(i=>i.type==="file").length,total=entries.filter(i=>i.type==="file").reduce((a,i)=>a+Number(i.size||0),0);s={folders,files,total_size_label:formatBytes(total)}}const selectedCount=selectedItems().length;stats.textContent=`${s.folders} folder${s.folders===1?"":"s"} · ${s.files} file${s.files===1?"":"s"} · ${s.total_size_label}${selectedCount?` · ${selectedCount} selected`:""}`;if(!entries.length){content.innerHTML=`${selectionBar()}<div class="message">No files found in this folder.</div>`;setupSelectionControls();setupDragAndDrop();return}content.innerHTML=`${selectionBar()}<table class="file-table manager-table"><thead><tr><th class="select-col"><input id="selectAll" type="checkbox" aria-label="Select all visible items" onchange="toggleSelectAll(this.checked)"></th><th class="name-cell">Name</th><th class="hide-sm modified-cell">Modified</th><th class="right size-cell">Size</th><th class="right actions-cell"></th></tr></thead><tbody>${entries.map(renderRow).join("")}</tbody></table>`;setupSelectionControls();setupDragAndDrop()}
+    function selectionBar(){const selected=selectedItems(),count=selected.length;if(!count)return"";const extractable=selected.some(i=>i.type==="file"&&i.extractable);return`<div class="bulkbar show" id="bulkbar" aria-live="polite"><div class="bulk-summary"><strong>${count}</strong> selected</div><div class="bulk-actions"><button class="action" type="button" onclick="downloadSelected()">Download as ZIP</button><button class="action" type="button" onclick="copySelectedUrls()">Copy URLs</button><button class="action" type="button" onclick="moveSelectedPrompt()">Move</button><button class="action" type="button" onclick="extractSelected()" ${extractable?"":"disabled"}>Extract</button><button class="action danger" type="button" onclick="deleteSelected()">Delete</button><button class="action" type="button" onclick="clearSelection()">Deselect</button></div></div>`}
+    function render(s){renderBreadcrumbs();selectionBarHost.innerHTML=selectionBar();const entries=currentEntries();if(!s){const folders=entries.filter(i=>i.type==="dir").length,files=entries.filter(i=>i.type==="file").length,total=entries.filter(i=>i.type==="file").reduce((a,i)=>a+Number(i.size||0),0);s={folders,files,total_size_label:formatBytes(total)}}const selectedCount=selectedItems().length;stats.textContent=`${s.folders} folder${s.folders===1?"":"s"} · ${s.files} file${s.files===1?"":"s"} · ${s.total_size_label}${selectedCount?` · ${selectedCount} selected`:""}`;if(!entries.length){content.innerHTML=`<div class="message">No files found in this folder.</div>`;setupSelectionControls();setupDragAndDrop();return}content.innerHTML=`<table class="file-table manager-table"><thead><tr><th class="select-col"><input id="selectAll" type="checkbox" aria-label="Select all visible items" onchange="toggleSelectAll(this.checked)"></th><th class="name-cell">Name</th><th class="hide-sm modified-cell">Modified</th><th class="right size-cell">Size</th><th class="right actions-cell"></th></tr></thead><tbody>${entries.map(renderRow).join("")}</tbody></table>`;setupSelectionControls();setupDragAndDrop()}
     function itemMenu(label,items){return`<div class="item-menu" data-item-menu><button class="action item-menu-toggle" type="button" aria-label="More actions for ${escapeAttr(label)}" aria-haspopup="menu" aria-expanded="false">⋯</button><div class="item-menu-list" role="menu">${items}</div></div>`}
     function renderRow(item){
       const isDir=item.type==="dir",icon=isDir?"📁":fileIcon(item.name),isSelected=state.selected.has(item.path);
@@ -969,8 +999,8 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     }
     function openFolder(path){state.path=cleanPath(path);state.selected.clear();search.value="";const u=new URL(location.href);if(state.path)u.searchParams.set("path",state.path);else u.searchParams.delete("path");history.pushState(null,"",u);loadFolder()}
     function renderBreadcrumbs(){const parts=state.path?state.path.split("/"):[];let html=`<button type="button" data-drop-folder="" onclick="openFolder('')">root</button>`;parts.forEach((part,index)=>{const path=parts.slice(0,index+1).join("/");html+=`<span class="sep">/</span><button type="button" data-drop-folder="${escapeAttr(path)}" onclick="openFolder('${escapeJs(path)}')">${escapeHtml(part)}</button>`});breadcrumbs.innerHTML=html}
-    function renderLoading(){renderBreadcrumbs();stats.textContent="Loading...";content.innerHTML=`<div class="message">Loading folder...</div>`}
-    function showError(message){renderBreadcrumbs();stats.textContent="Error";content.innerHTML=`<div class="message error"><strong>Could not load folder.</strong><br>${escapeHtml(message)}</div>`}
+    function renderLoading(){renderBreadcrumbs();selectionBarHost.innerHTML="";stats.textContent="Loading...";content.innerHTML=`<div class="message">Loading folder...</div>`}
+    function showError(message){renderBreadcrumbs();selectionBarHost.innerHTML="";stats.textContent="Error";content.innerHTML=`<div class="message error"><strong>Could not load folder.</strong><br>${escapeHtml(message)}</div>`}
 
 
     function setupSelectionControls(){const selectAll=$("selectAll");if(!selectAll)return;const entries=currentEntries();const selectedVisible=entries.filter(i=>state.selected.has(i.path)).length;selectAll.checked=entries.length>0&&selectedVisible===entries.length;selectAll.indeterminate=selectedVisible>0&&selectedVisible<entries.length}
@@ -987,7 +1017,12 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     function simpleUploadReason(reason){reason=String(reason||"").toLowerCase();if(reason.includes("protected")||reason.includes("server behavior")||reason.includes("file manager"))return"access protected/system file";if(reason.includes("dot")||reason.includes("hidden"))return"hidden/system file";const ext=reason.match(/ending in \.([a-z0-9]+)/i)||reason.match(/extension \.([a-z0-9]+)/i);if(ext)return`blocked .${ext[1]} file`;if(reason.includes("too large"))return"file too large";return"blocked file"}
     function summarizeUploadErrors(errors){const groups=new Map();for(const err of errors||[]){const text=String(err||"").trim();let name="";let reason=text;const match=text.match(/^(.+?) was not uploaded\.\s*(.+)$/);if(match){name=match[1];reason=match[2]}const label=simpleUploadReason(reason);if(!groups.has(label))groups.set(label,{count:0,names:[]});const group=groups.get(label);group.count++;if(name)group.names.push(name)}return [...groups.entries()].map(([label,group])=>{const names=group.names.slice(0,4).join(", ")+(group.names.length>4?", ...":"");const filePart=names||"file";const countPart=group.count>1?` (x${group.count})`:"";return `Blocked ${filePart} upload: ${label}${countPart}`}).join(" | ")}
     function fileRelativePath(file){return file.relativePath||file.webkitRelativePath||file.name}
-    async function uploadFiles(files){files=[...files];if(!files.length)return;const form=new FormData();form.append("path",state.path);for(const file of files){form.append("files[]",file,file.name);form.append("paths[]",fileRelativePath(file))}toast(`Uploading ${files.length} file${files.length===1?"":"s"}...`);uploadProgress.classList.remove("show");uploadProgress.textContent="";try{const r=await fetch(apiUrl("upload",{path:state.path}),{method:"POST",credentials:"same-origin",body:form});const j=await r.json();const uploadedCount=(j.uploaded||[]).length;if(uploadedCount)toast(j.message||`${uploadedCount} file${uploadedCount===1?"":"s"} uploaded.`);if(j.errors&&j.errors.length)toast(summarizeUploadErrors(j.errors));if(!uploadedCount&&(!j.errors||!j.errors.length)&&!j.ok)throw new Error(j.error||"Upload failed");await loadFolder()}catch(e){toast(e.message||String(e))}finally{uploadProgress.classList.remove("show");uploadProgress.textContent="";uploadInput.value="";uploadFolderInput.value=""}}
+    let uploadInProgress=false,uploadProgressTimer=0;
+    function setUploadControlsDisabled(disabled){document.querySelectorAll("#uploadMenuBtn,[data-upload]").forEach(button=>button.disabled=disabled);uploadInput.disabled=disabled;uploadFolderInput.disabled=disabled;$("browserPanel").setAttribute("aria-busy",disabled?"true":"false")}
+    function showUploadProgress(percent,label,detail="",status=""){clearTimeout(uploadProgressTimer);uploadProgress.classList.remove("error","partial");if(status)uploadProgress.classList.add(status);uploadProgress.classList.add("show");uploadProgressLabel.textContent=label;uploadProgressDetail.textContent=detail;const determinate=typeof percent==="number"&&Number.isFinite(percent);if(determinate){const value=Math.max(0,Math.min(100,Math.round(percent)));uploadProgressBar.classList.remove("indeterminate");uploadProgressBar.style.width=value+"%";uploadProgressPercent.textContent=value+"%";uploadProgressTrack.setAttribute("aria-valuenow",String(value))}else{uploadProgressBar.style.width="";uploadProgressBar.classList.add("indeterminate");uploadProgressPercent.textContent="Working...";uploadProgressTrack.removeAttribute("aria-valuenow")}}
+    function hideUploadProgress(delay=2500){clearTimeout(uploadProgressTimer);uploadProgressTimer=setTimeout(()=>{uploadProgress.classList.remove("show","error","partial")},delay)}
+    function uploadRequest(form,fileCount){return new Promise((resolve,reject)=>{const xhr=new XMLHttpRequest();xhr.open("POST",apiUrl("upload",{path:state.path}),true);xhr.withCredentials=true;xhr.upload.addEventListener("progress",event=>{if(event.lengthComputable&&event.total>0){const percent=Math.max(1,Math.min(99,Math.round(event.loaded/event.total*100)));showUploadProgress(percent,"Uploading "+fileCount+" file"+(fileCount===1?"":"s")+"...",formatBytes(event.loaded)+" of "+formatBytes(event.total))}else{showUploadProgress(null,"Uploading "+fileCount+" file"+(fileCount===1?"":"s")+"...",formatBytes(event.loaded)+" sent")}});xhr.upload.addEventListener("load",()=>showUploadProgress(100,"Processing uploaded files...","Transfer complete; waiting for the server."));xhr.addEventListener("load",()=>{if(xhr.status===401){location.reload();reject(new Error("Your session expired. Please sign in again."));return}if(xhr.status===413){reject(new Error("The server rejected this upload because it exceeds its configured request-size limit."));return}let data;try{data=JSON.parse(xhr.responseText||"{}")}catch{reject(new Error("The server returned an invalid response. The upload may exceed the PHP post_max_size or upload_max_filesize limit."));return}if(!data||typeof data!=="object"){reject(new Error("The server returned an invalid upload response."));return}resolve(data)});xhr.addEventListener("error",()=>reject(new Error("The upload connection failed. Check your connection and try again.")));xhr.addEventListener("abort",()=>reject(new Error("The upload was cancelled.")));xhr.addEventListener("timeout",()=>reject(new Error("The upload timed out. Please try again.")));xhr.send(form)})}
+    async function uploadFiles(files){files=[...files];if(!files.length)return;if(uploadInProgress){toast("An upload is already in progress.");return}uploadInProgress=true;setUploadControlsDisabled(true);const form=new FormData();form.append("path",state.path);for(const file of files){form.append("files[]",file,file.name);form.append("paths[]",fileRelativePath(file))}const totalBytes=files.reduce((sum,file)=>sum+Number(file.size||0),0);showUploadProgress(0,"Preparing "+files.length+" file"+(files.length===1?"":"s")+"...",formatBytes(totalBytes)+" total");toast("Uploading "+files.length+" file"+(files.length===1?"":"s")+"...");try{const j=await uploadRequest(form,files.length);const uploadedCount=(j.uploaded||[]).length;const errors=j.errors||[];if(!uploadedCount)throw new Error(j.error||(errors.length?summarizeUploadErrors(errors):"Upload failed"));toast(j.message||uploadedCount+" file"+(uploadedCount===1?"":"s")+" uploaded.");if(errors.length)toast(summarizeUploadErrors(errors));const partial=errors.length>0;showUploadProgress(100,partial?"Upload finished with warnings":"Upload complete",partial?"Uploaded "+uploadedCount+" of "+files.length+" files.":uploadedCount+" file"+(uploadedCount===1?"":"s")+" uploaded successfully.",partial?"partial":"");await loadFolder();hideUploadProgress(partial?5000:2500)}catch(e){const message=e.message||String(e);showUploadProgress(100,"Upload failed",message,"error");toast(message);hideUploadProgress(8000)}finally{uploadInProgress=false;setUploadControlsDisabled(false);uploadInput.value="";uploadFolderInput.value=""}}
     function readEntryFile(entry,pathPrefix=""){return new Promise(resolve=>{entry.file(file=>{file.relativePath=pathPrefix+file.name;resolve([file])},()=>resolve([]))})}
     function readDirectoryEntries(reader){return new Promise(resolve=>{const entries=[];function readBatch(){reader.readEntries(batch=>{if(!batch.length){resolve(entries);return}entries.push(...batch);readBatch()},()=>resolve(entries))}readBatch()})}
     async function readEntry(entry,pathPrefix=""){if(entry.isFile)return readEntryFile(entry,pathPrefix);if(entry.isDirectory){const dirPrefix=pathPrefix+entry.name+"/";const reader=entry.createReader();const entries=await readDirectoryEntries(reader);const files=[];for(const child of entries)files.push(...await readEntry(child,dirPrefix));return files}return[]}

@@ -136,7 +136,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     button{cursor:pointer;transition:transform .12s ease,border-color .12s ease,background .12s ease,box-shadow .12s ease}
     button:hover{transform:translateY(-1px);border-color:rgba(66,211,146,.75);background:var(--goodsoft)}
     button:disabled{opacity:.48;cursor:not-allowed;transform:none}
-    .panel,.editor,.login-card{border:1px solid var(--line);border-radius:14px;background:rgba(23,26,33,.88);box-shadow:0 4px 12px rgba(0,0,0,.12);backdrop-filter:blur(12px)}
+    .panel,.editor,.login-card{border:1px solid var(--line);border-radius:14px;background:rgba(23,26,33,.88);box-shadow:none;backdrop-filter:blur(12px)}
     .panel{overflow:visible}
     .editor,.login-card{overflow:hidden}
     body.light .panel,body.light .editor,body.light .login-card{background:rgba(255,255,255,.88)}
@@ -169,7 +169,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
     .selection-bar-host{margin-top:12px}
     .selection-bar-host:empty{display:none}
     .bulkbar{display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;background:rgba(23,26,33,.96)}
-    .bulkbar.show{position:relative;z-index:30;display:flex;width:100%;border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,.14),0 0 0 1px rgba(66,211,146,.10);backdrop-filter:blur(14px);isolation:isolate}
+    .bulkbar.show{position:relative;z-index:30;display:flex;width:100%;border:1px solid var(--line);border-radius:14px;box-shadow:none;backdrop-filter:blur(14px);isolation:isolate}
     body.light .bulkbar{background:rgba(255,255,255,.96)}
     .bulkbar .action{border-radius:10px}
     .bulk-summary{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.92rem;line-height:1.35}

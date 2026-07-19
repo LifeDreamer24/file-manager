@@ -615,12 +615,9 @@ async function uploadFiles(files, presetPolicy = null) {
     toast("An upload is already in progress.");
     return;
   }
-  const policy =
-    presetPolicy ||
-    (await chooseConflictPolicy(
-      `Choose how existing items should be handled while uploading ${files.length} file${files.length === 1 ? "" : "s"}.`,
-    ));
-  if (!policy) return;
+  // Start safely without interrupting every upload. The server reports actual
+  // collisions while using "skip", and only then do we ask what to do.
+  const policy = presetPolicy || "skip";
   uploadInProgress = true;
   state.uploadCancelled = false;
   state.failedUploads = [];
@@ -637,6 +634,8 @@ async function uploadFiles(files, presetPolicy = null) {
   );
   const loaded = new Map(),
     settled = new Set();
+  const conflictFiles = [];
+  let conflictRetry = null;
   let cursor = 0,
     uploaded = 0,
     skipped = 0;
@@ -669,7 +668,9 @@ async function uploadFiles(files, presetPolicy = null) {
         });
         loaded.set(index, Number(file.size || 0));
         uploaded += (result.uploaded || []).length;
-        skipped += (result.conflicts || []).length;
+        const conflicts = result.conflicts || [];
+        skipped += conflicts.length;
+        if (conflicts.length) conflictFiles.push(file);
         settled.add(index);
       } catch (error) {
         if (!state.uploadCancelled) {
@@ -697,8 +698,34 @@ async function uploadFiles(files, presetPolicy = null) {
       });
       state.failedUploads = [...retryFiles];
     }
+    if (
+      !state.uploadCancelled &&
+      presetPolicy === null &&
+      conflictFiles.length
+    ) {
+      const names = conflictFiles
+        .slice(0, 5)
+        .map(fileRelativePath)
+        .join(", ");
+      const more = conflictFiles.length > 5 ? ", ..." : "";
+      const choice = await chooseConflictPolicy(
+        `${conflictFiles.length} file${conflictFiles.length === 1 ? "" : "s"} already ${conflictFiles.length === 1 ? "exists" : "exist"}: ${names}${more}`,
+      );
+      if (choice && choice !== "skip") {
+        conflictRetry = { files: conflictFiles, policy: choice };
+      }
+    }
     const failed = state.uploadFailures.length;
-    if (state.uploadCancelled) {
+    if (conflictRetry) {
+      uploadCancel.hidden = true;
+      uploadRetry.hidden = true;
+      showUploadProgress(
+        null,
+        "Resolving existing files...",
+        `Continuing with ${conflictFiles.length} conflicting file${conflictFiles.length === 1 ? "" : "s"}.`,
+        "partial",
+      );
+    } else if (state.uploadCancelled) {
       uploadCancel.disabled = false;
       uploadCancel.textContent = "Close";
       uploadCancel.hidden = false;
@@ -733,12 +760,15 @@ async function uploadFiles(files, presetPolicy = null) {
       );
       hideUploadProgress(skipped ? 5000 : 2500);
     }
-    await loadFolder();
+    if (!conflictRetry) await loadFolder();
   } finally {
     uploadInProgress = false;
     setUploadControlsDisabled(false);
     uploadInput.value = "";
     uploadFolderInput.value = "";
+  }
+  if (conflictRetry) {
+    return uploadFiles(conflictRetry.files, conflictRetry.policy);
   }
 }
 function readEntryFile(entry, pathPrefix = "") {

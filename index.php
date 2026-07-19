@@ -79,6 +79,8 @@ if (is_logged_in() && time() - (int)($_SESSION['file_manager_login_time'] ?? 0) 
 $loggedIn = is_logged_in();
 $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT_QUOTES, 'UTF-8');
 $loginAction = app_base_url() . ($requestedPath !== '' ? '?path=' . rawurlencode($requestedPath) : '');
+$cssVersion = (string)(filemtime(__DIR__ . '/assets/app.css') ?: 1);
+$jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
 ?>
 <!doctype html>
 <html lang="en">
@@ -90,7 +92,7 @@ $loginAction = app_base_url() . ($requestedPath !== '' ? '?path=' . rawurlencode
   <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)" />
   <meta name="theme-color" content="#f4f6fa" media="(prefers-color-scheme: light)" />
   <meta name="csrf-token" content="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>" />
-  <link rel="stylesheet" href="assets/app.css" />
+  <link rel="stylesheet" href="assets/app.css?v=<?= $cssVersion ?>" />
 </head>
 <body>
 <?php if (!$loggedIn): ?>
@@ -284,7 +286,7 @@ $loginAction = app_base_url() . ($requestedPath !== '' ? '?path=' . rawurlencode
     </section>
   </div>
 
-  <script src="assets/app.js" defer></script>
+  <script src="assets/app.js?v=<?= $jsVersion ?>" defer></script>
 <?php endif; ?>
 </body>
 </html>

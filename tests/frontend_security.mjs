@@ -26,6 +26,11 @@ assert.ok(
   "login form preserves a normalized path",
 );
 assert.ok(
+  index.includes('assets/app.css?v=<?= $cssVersion ?>') &&
+    index.includes('assets/app.js?v=<?= $jsVersion ?>'),
+  "frontend asset URLs change after deployment so stale upload code is not reused",
+);
+assert.ok(
   app.includes('uploadCancel.textContent = "Close"') &&
     app.includes('uploadCancel.addEventListener("click", handleUploadCancel)'),
   "the finished upload control closes the result panel",
@@ -33,6 +38,16 @@ assert.ok(
 assert.ok(
   app.includes("summarizeUploadErrors(data.errors)"),
   "blocked upload responses surface their server-provided reasons",
+);
+assert.ok(
+  app.includes('const policy = presetPolicy || "skip"') &&
+    app.includes("presetPolicy === null") &&
+    app.includes("conflictFiles.length"),
+  "uploads ask for a conflict policy only after the server reports a collision",
+);
+assert.ok(
+  !app.includes("Choose how existing items should be handled while uploading"),
+  "new uploads are not preemptively described as existing files",
 );
 assert.ok(
   /\[hidden\]\s*\{\s*display:\s*none\s*!important;\s*\}/.test(css),

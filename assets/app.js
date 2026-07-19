@@ -21,6 +21,8 @@ const state = {
   activeUploads: new Set(),
   uploadCancelled: false,
   conflictResolver: null,
+  media: null,
+  mediaReturnFocus: null,
 };
 const csrfToken =
   document.querySelector('meta[name="csrf-token"]')?.content || "";
@@ -56,6 +58,16 @@ const conflictModal = $("conflictModal"),
   conflictMessage = $("conflictMessage"),
   uploadCancel = $("uploadCancel"),
   uploadRetry = $("uploadRetry");
+const mediaModal = $("mediaModal"),
+  mediaStage = $("mediaStage"),
+  mediaTitle = $("mediaTitle"),
+  mediaPath = $("mediaPath"),
+  mediaMessage = $("mediaMessage"),
+  mediaFormat = $("mediaFormat"),
+  mediaDownload = $("mediaDownload"),
+  audioArtwork = $("audioArtwork"),
+  audioPlayer = $("audioPlayer"),
+  videoPlayer = $("videoPlayer");
 
 function cleanPath(path) {
   return String(path || "")
@@ -89,6 +101,11 @@ function filePublicUrl(item) {
 function fileDownloadUrl(item) {
   return absoluteUrl(
     item.download_url || apiUrl("download", { path: item.path }).toString(),
+  );
+}
+function fileStreamUrl(item) {
+  return absoluteUrl(
+    item.stream_url || apiUrl("stream", { path: item.path }).toString(),
   );
 }
 async function apiGet(action, params = {}) {
@@ -236,13 +253,18 @@ function renderRow(item) {
     click = `href="?path=${encodeURIComponent(item.path)}" data-open-action="folder"`;
   } else {
     const downloadUrl = fileDownloadUrl(item);
+    const playAction = item.media_type
+      ? `<button class="action" type="button" data-item-action="play">Play</button>`
+      : "";
     actions = itemMenu(
       item.name,
-      `<a class="action" href="${escapeAttr(downloadUrl)}" download="${escapeAttr(item.download_name || item.name)}">Download</a><button class="action" type="button" data-item-action="move">Move</button><button class="action" type="button" data-item-action="rename">Rename</button>${item.extractable ? `<button class="action" type="button" data-item-action="extract">Extract</button>` : ""}<button class="action" type="button" data-item-action="copy">Copy URL</button><button class="action danger" type="button" data-item-action="delete">Delete</button>`,
+      `${playAction}<a class="action" href="${escapeAttr(downloadUrl)}" download="${escapeAttr(item.download_name || item.name)}">Download</a><button class="action" type="button" data-item-action="move">Move</button><button class="action" type="button" data-item-action="rename">Rename</button>${item.extractable ? `<button class="action" type="button" data-item-action="extract">Extract</button>` : ""}<button class="action" type="button" data-item-action="copy">Copy URL</button><button class="action danger" type="button" data-item-action="delete">Delete</button>`,
     );
-    click = item.editable
-      ? `href="#" data-open-action="edit" class="name file-name"`
-      : `href="${escapeAttr(downloadUrl)}" download="${escapeAttr(item.download_name || item.name)}" class="name file-name"`;
+    click = item.media_type
+      ? `href="#" data-open-action="media" class="name file-name"`
+      : item.editable
+        ? `href="#" data-open-action="edit" class="name file-name"`
+        : `href="${escapeAttr(downloadUrl)}" download="${escapeAttr(item.download_name || item.name)}" class="name file-name"`;
   }
   const nameMarkup = isDir ? `<a class="name" ${click}>` : `<a ${click}>`;
   const modified = formatDate(item.modified);
@@ -1172,6 +1194,86 @@ async function editFile(path) {
     setEditorStatus(e.message || String(e), false);
   }
 }
+
+function mediaItem(path) {
+  return state.entries.find((item) => item.path === path) || null;
+}
+function resetMediaElement(player) {
+  player.pause();
+  player.removeAttribute("src");
+  player.load();
+  player.hidden = true;
+}
+function openMedia(path, trigger = null) {
+  const item = mediaItem(path);
+  if (!item || !["audio", "video"].includes(item.media_type)) {
+    toast("This file cannot be played in the browser.");
+    return;
+  }
+
+  resetMediaElement(audioPlayer);
+  resetMediaElement(videoPlayer);
+  state.media = item;
+  state.mediaReturnFocus = trigger || document.activeElement;
+
+  mediaTitle.textContent = item.name;
+  mediaPath.textContent = item.path;
+  mediaFormat.textContent = `${extension(item.name).toUpperCase()} ${item.media_type}`;
+  mediaDownload.href = fileDownloadUrl(item);
+  mediaDownload.download = item.download_name || item.name;
+  mediaMessage.textContent = "Loading media...";
+  mediaMessage.classList.remove("error");
+  mediaMessage.hidden = false;
+  mediaStage.classList.toggle("audio", item.media_type === "audio");
+  mediaStage.classList.toggle("video", item.media_type === "video");
+  audioArtwork.hidden = item.media_type !== "audio";
+
+  const player = item.media_type === "audio" ? audioPlayer : videoPlayer;
+  player.hidden = false;
+  player.src = fileStreamUrl(item);
+  player.load();
+
+  mediaModal.classList.add("show");
+  mediaModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("media-player-open");
+  $("mediaClose").focus();
+
+  const playback = player.play();
+  if (playback && typeof playback.catch === "function") {
+    playback.catch(() => {
+      if (state.media === item && !player.error) {
+        mediaMessage.textContent = "Ready — press play to start.";
+        mediaMessage.hidden = false;
+      }
+    });
+  }
+}
+function closeMedia() {
+  if (!state.media && !mediaModal.classList.contains("show")) return;
+  const returnFocus = state.mediaReturnFocus;
+  resetMediaElement(audioPlayer);
+  resetMediaElement(videoPlayer);
+  state.media = null;
+  state.mediaReturnFocus = null;
+  mediaModal.classList.remove("show");
+  mediaModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("media-player-open");
+  if (returnFocus && document.contains(returnFocus)) returnFocus.focus();
+}
+function handleMediaReady(event) {
+  const active = state.media?.media_type === "audio" ? audioPlayer : videoPlayer;
+  if (event.currentTarget !== active) return;
+  mediaMessage.hidden = true;
+  mediaMessage.classList.remove("error");
+}
+function handleMediaError(event) {
+  const active = state.media?.media_type === "audio" ? audioPlayer : videoPlayer;
+  if (event.currentTarget !== active || !state.media) return;
+  mediaMessage.textContent =
+    "Playback failed. This browser may not support the file's codec.";
+  mediaMessage.classList.add("error");
+  mediaMessage.hidden = false;
+}
 async function saveFile() {
   if (!state.editing) return;
   try {
@@ -1391,7 +1493,8 @@ function fileIcon(name) {
   if (["bsp", "nav"].includes(ext)) return "🗺️";
   if (["vmt", "vtf", "png", "jpg", "jpeg", "webp", "gif"].includes(ext))
     return "🖼️";
-  if (["wav", "mp3", "ogg"].includes(ext)) return "🔊";
+  if (["wav", "mp3", "ogg", "oga", "opus", "m4a", "aac", "flac"].includes(ext)) return "🔊";
+  if (["mp4", "m4v", "webm", "ogv", "mov"].includes(ext)) return "🎬";
   if (["mdl", "vvd", "phy", "vtx"].includes(ext)) return "🧩";
   if (["txt", "cfg", "res", "json", "html", "css", "js"].includes(ext))
     return "📄";
@@ -1536,6 +1639,8 @@ content.addEventListener("click", (e) => {
     const row = open.closest("tr[data-path]");
     if (!row) return;
     if (open.dataset.openAction === "folder") openFolder(row.dataset.path);
+    else if (open.dataset.openAction === "media")
+      openMedia(row.dataset.path, open);
     else editFile(row.dataset.path);
     return;
   }
@@ -1549,6 +1654,13 @@ content.addEventListener("click", (e) => {
       name = row.dataset.name,
       type = row.dataset.type;
     switch (action.dataset.itemAction) {
+      case "play":
+        openMedia(
+          path,
+          action.closest(".item-menu")?.querySelector(".item-menu-toggle") ||
+            action,
+        );
+        break;
       case "move":
         openMovePicker([path]);
         break;
@@ -1750,9 +1862,20 @@ conflictModal.addEventListener("click", (e) => {
   else if (e.target === conflictModal) closeConflictModal(null);
 });
 $("conflictCancel").addEventListener("click", () => closeConflictModal(null));
+$("mediaClose").addEventListener("click", closeMedia);
+$("mediaDone").addEventListener("click", closeMedia);
+mediaModal.addEventListener("click", (e) => {
+  if (e.target === mediaModal) closeMedia();
+});
+[audioPlayer, videoPlayer].forEach((player) => {
+  player.addEventListener("loadedmetadata", handleMediaReady);
+  player.addEventListener("canplay", handleMediaReady);
+  player.addEventListener("error", handleMediaError);
+});
 window.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
-  if (state.conflictResolver) closeConflictModal(null);
+  if (state.media) closeMedia();
+  else if (state.conflictResolver) closeConflictModal(null);
   else if (state.movePicker) closeMovePicker();
 });
 window.addEventListener("popstate", () => {

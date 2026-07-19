@@ -41,6 +41,15 @@ check(path_is_within('/srv/files/maps', '/srv/files'), 'child path is accepted')
 check(path_is_within('/srv/files', '/srv/files'), 'base path is accepted');
 check(!path_is_within('/srv/files-private', '/srv/files'), 'similarly prefixed sibling is rejected');
 
+check(media_kind('song.mp3') === 'audio', 'MP3 files are recognized as audio');
+check(media_kind('movie.webm') === 'video', 'WebM files are recognized as video');
+check(media_kind('notes.txt') === null, 'non-media files are not exposed to the player');
+check(parse_single_byte_range('bytes=0-99', 1000) === [0, 99], 'bounded media byte range is parsed');
+check(parse_single_byte_range('bytes=900-', 1000) === [900, 999], 'open-ended media byte range is parsed');
+check(parse_single_byte_range('bytes=-100', 1000) === [900, 999], 'suffix media byte range is parsed');
+check(parse_single_byte_range('bytes=1000-', 1000) === false, 'out-of-bounds media byte range is rejected');
+check(parse_single_byte_range('bytes=0-1,4-5', 1000) === false, 'multiple media byte ranges are rejected safely');
+
 [$allowedPhp] = entry_name_allowed($config, 'payload.php');
 [$allowedDotfile] = entry_name_allowed($config, '.htaccess');
 [$allowedText] = entry_name_allowed($config, 'server.cfg');

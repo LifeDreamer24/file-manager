@@ -144,6 +144,15 @@ function download_content_disposition(string $filename): string {
     return 'attachment; filename="' . $fallback . '"; filename*=UTF-8\'\'' . rawurlencode($filename);
 }
 
+function inline_content_disposition(string $filename): string {
+    $filename = basename(str_replace('\\', '/', $filename));
+    $fallback = preg_replace('/[^A-Za-z0-9._-]/', '_', $filename);
+    if ($fallback === null || $fallback === '') {
+        $fallback = 'media';
+    }
+    return 'inline; filename="' . addcslashes($fallback, "\\\"") . '"; filename*=UTF-8\'\'' . rawurlencode($filename);
+}
+
 
 function dos_datetime(int $timestamp): array {
     $year = (int)date('Y', $timestamp);
@@ -447,6 +456,106 @@ function send_paths_zip(array $config, array $paths): void {
 function extension_of(string $name): string {
     $ext = pathinfo($name, PATHINFO_EXTENSION);
     return strtolower($ext ?: '');
+}
+
+function media_mime_type(string $path): ?string {
+    return match (extension_of($path)) {
+        'mp3' => 'audio/mpeg',
+        'wav' => 'audio/wav',
+        'ogg', 'oga' => 'audio/ogg',
+        'opus' => 'audio/ogg; codecs=opus',
+        'm4a' => 'audio/mp4',
+        'aac' => 'audio/aac',
+        'flac' => 'audio/flac',
+        'mp4', 'm4v' => 'video/mp4',
+        'webm' => 'video/webm',
+        'ogv' => 'video/ogg',
+        'mov' => 'video/quicktime',
+        default => null,
+    };
+}
+
+function media_kind(string $path): ?string {
+    $mime = media_mime_type($path);
+    if ($mime === null) return null;
+    return str_starts_with($mime, 'audio/') ? 'audio' : 'video';
+}
+
+function parse_single_byte_range(string $header, int $size): array|false|null {
+    if ($header === '' || $size < 1) return null;
+    if (!preg_match('/^bytes=(\d*)-(\d*)$/i', trim($header), $matches)) return false;
+
+    $startText = $matches[1];
+    $endText = $matches[2];
+    if ($startText === '' && $endText === '') return false;
+
+    if ($startText === '') {
+        $suffixLength = (int)$endText;
+        if ($suffixLength < 1) return false;
+        $start = max(0, $size - $suffixLength);
+        return [$start, $size - 1];
+    }
+
+    $start = (int)$startText;
+    if ($start >= $size) return false;
+    $end = $endText === '' ? $size - 1 : min((int)$endText, $size - 1);
+    if ($end < $start) return false;
+    return [$start, $end];
+}
+
+function send_media_stream(string $file, string $mime): void {
+    $size = filesize($file);
+    if ($size === false || $size < 1) {
+        http_response_code(404);
+        echo 'Media file is empty or unavailable.';
+        exit;
+    }
+
+    $start = 0;
+    $end = $size - 1;
+    $rangeHeader = (string)($_SERVER['HTTP_RANGE'] ?? '');
+    $range = parse_single_byte_range($rangeHeader, $size);
+    if ($range === false) {
+        http_response_code(416);
+        header('Content-Range: bytes */' . $size);
+        exit;
+    }
+    if (is_array($range)) {
+        [$start, $end] = $range;
+        http_response_code(206);
+        header('Content-Range: bytes ' . $start . '-' . $end . '/' . $size);
+    }
+
+    $length = $end - $start + 1;
+    while (ob_get_level() > 0) ob_end_clean();
+    @ini_set('zlib.output_compression', '0');
+    @set_time_limit(0);
+    header('Content-Type: ' . $mime);
+    header('Content-Disposition: ' . inline_content_disposition(basename($file)));
+    header('Accept-Ranges: bytes');
+    header('Content-Length: ' . $length);
+    header('Cache-Control: private, no-store');
+    header('X-Content-Type-Options: nosniff');
+
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'HEAD') exit;
+
+    $handle = fopen($file, 'rb');
+    if ($handle === false) {
+        http_response_code(500);
+        exit;
+    }
+    if ($start > 0) fseek($handle, $start);
+
+    $remaining = $length;
+    while ($remaining > 0 && !feof($handle) && !connection_aborted()) {
+        $chunk = fread($handle, min(1024 * 1024, $remaining));
+        if ($chunk === false || $chunk === '') break;
+        echo $chunk;
+        $remaining -= strlen($chunk);
+        flush();
+    }
+    fclose($handle);
+    exit;
 }
 
 function is_hidden(array $config, string $name): bool {
@@ -753,6 +862,32 @@ if ($action === 'download') {
     exit;
 }
 
+if ($action === 'stream') {
+    if (!is_logged_in()) {
+        http_response_code(401);
+        echo 'Not logged in.';
+        exit;
+    }
+
+    $rel = clean_rel_path((string)($_GET['path'] ?? ''));
+    $file = full_path($config, $rel);
+    $mime = media_mime_type($file);
+
+    if (!is_file($file)) {
+        http_response_code(404);
+        echo 'File not found.';
+        exit;
+    }
+    if ($mime === null) {
+        http_response_code(415);
+        echo 'This file type cannot be played.';
+        exit;
+    }
+
+    if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+    send_media_stream($file, $mime);
+}
+
 
 if ($action === 'download_batch') {
     if (!is_logged_in()) {
@@ -822,6 +957,7 @@ if ($action === 'list') {
             $fileCount++;
             $totalSize += $size;
             $ext = extension_of($name);
+            $mediaKind = media_kind($name);
             $entries[] = [
                 'type' => 'file',
                 'name' => $name,
@@ -831,6 +967,8 @@ if ($action === 'list') {
                 'modified' => filemtime($full) ?: 0,
                 'editable' => is_editable($config, $entryRel, $size),
                 'extractable' => !empty($config['allow_zip_extract']) && $ext === 'zip',
+                'media_type' => $mediaKind,
+                'stream_url' => $mediaKind === null ? null : 'api.php?action=stream&path=' . rawurlencode($entryRel),
                 'public_url' => public_url($config, $entryRel),
                 'download_url' => 'api.php?action=download&path=' . rawurlencode($entryRel),
                 'download_name' => $ext === 'lnk' ? preg_replace('/\.lnk$/i', '', $name) . '.zip' : $name,

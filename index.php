@@ -291,6 +291,33 @@ $jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
     </section>
   </div>
 
+  <div id="mediaModal" class="media-modal" aria-hidden="true">
+    <section class="media-card" role="dialog" aria-modal="true" aria-labelledby="mediaTitle">
+      <div class="media-head">
+        <div class="media-title">
+          <strong id="mediaTitle">Media player</strong>
+          <span id="mediaPath"></span>
+        </div>
+        <button id="mediaClose" class="move-close" type="button" aria-label="Close media player"><span aria-hidden="true">×</span></button>
+      </div>
+      <div id="mediaStage" class="media-stage">
+        <div id="audioArtwork" class="audio-artwork" hidden aria-hidden="true">
+          <span>♫</span>
+        </div>
+        <video id="videoPlayer" controls preload="metadata" playsinline hidden></video>
+        <audio id="audioPlayer" controls preload="metadata" hidden></audio>
+        <div id="mediaMessage" class="media-message" role="status" aria-live="polite">Loading media...</div>
+      </div>
+      <div class="media-foot">
+        <span id="mediaFormat" class="media-format"></span>
+        <div class="media-actions">
+          <a id="mediaDownload" class="action" href="#" download>Download</a>
+          <button id="mediaDone" class="action" type="button">Close</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
   <script src="assets/app.js?v=<?= $jsVersion ?>" defer></script>
 <?php endif; ?>
 </body>

@@ -26,6 +26,14 @@ assert.ok(
   "row actions use delegated data attributes",
 );
 assert.ok(
+  index.includes('id="mediaModal"') &&
+    index.includes('id="audioPlayer"') &&
+    index.includes('id="videoPlayer"') &&
+    app.includes('apiUrl("stream", { path: item.path })') &&
+    app.includes('player.removeAttribute("src")'),
+  "the media player uses the authenticated stream and releases it when closed",
+);
+assert.ok(
   index.includes('name="path" value="<?= htmlspecialchars($requestedPath'),
   "login form preserves a normalized path",
 );

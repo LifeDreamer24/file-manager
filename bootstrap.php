@@ -38,14 +38,14 @@ function send_security_headers(bool $api = false): void {
 }
 
 function is_logged_in(): bool {
-    return !empty($_SESSION['fastdl_manager_logged_in']);
+    return !empty($_SESSION['file_manager_logged_in']);
 }
 
 function csrf_token(): string {
-    if (empty($_SESSION['fastdl_manager_csrf'])) {
-        $_SESSION['fastdl_manager_csrf'] = bin2hex(random_bytes(32));
+    if (empty($_SESSION['file_manager_csrf'])) {
+        $_SESSION['file_manager_csrf'] = bin2hex(random_bytes(32));
     }
-    return (string)$_SESSION['fastdl_manager_csrf'];
+    return (string)$_SESSION['file_manager_csrf'];
 }
 
 function csrf_is_valid(?string $token): bool {
@@ -67,8 +67,8 @@ function normalize_return_path(string $path): string {
 }
 
 function app_password_configured(array $config): bool {
-    $env = getenv('FASTDL_MANAGER_PASSWORD');
-    $hashEnv = getenv('FASTDL_MANAGER_PASSWORD_HASH');
+    $env = getenv('FILE_MANAGER_PASSWORD');
+    $hashEnv = getenv('FILE_MANAGER_PASSWORD_HASH');
     if ((is_string($env) && $env !== '') || (is_string($hashEnv) && $hashEnv !== '')) return true;
     $plain = (string)($config['password'] ?? '');
     $hash = (string)($config['password_hash'] ?? '');
@@ -76,11 +76,11 @@ function app_password_configured(array $config): bool {
 }
 
 function verify_app_password(array $config, string $password): bool {
-    $hash = getenv('FASTDL_MANAGER_PASSWORD_HASH');
+    $hash = getenv('FILE_MANAGER_PASSWORD_HASH');
     if (!is_string($hash) || $hash === '') $hash = (string)($config['password_hash'] ?? '');
     if ($hash !== '') return password_verify($password, $hash);
 
-    $plain = getenv('FASTDL_MANAGER_PASSWORD');
+    $plain = getenv('FILE_MANAGER_PASSWORD');
     if (!is_string($plain) || $plain === '') $plain = (string)($config['password'] ?? '');
     return $plain !== '' && $plain !== 'change-this-password' && hash_equals($plain, $password);
 }

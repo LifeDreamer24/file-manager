@@ -10,7 +10,7 @@ $error = '';
 $requestedPath = normalize_return_path((string)($_POST['path'] ?? $_GET['path'] ?? ''));
 $passwordConfigured = app_password_configured($config);
 if (!$passwordConfigured) {
-    $error = 'Set FASTDL_MANAGER_PASSWORD, FASTDL_MANAGER_PASSWORD_HASH, or a secure value in config.php before signing in.';
+    $error = 'Set FILE_MANAGER_PASSWORD, FILE_MANAGER_PASSWORD_HASH, or a secure value in config.php before signing in.';
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logout') {
@@ -48,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'login
         if (verify_app_password($config, $password)) {
             clear_login_rate_state();
             session_regenerate_id(true);
-            $_SESSION['fastdl_manager_logged_in'] = true;
-            $_SESSION['fastdl_manager_login_time'] = time();
+            $_SESSION['file_manager_logged_in'] = true;
+            $_SESSION['file_manager_login_time'] = time();
             $location = app_base_url();
             if ($requestedPath !== '') $location .= '?path=' . rawurlencode($requestedPath);
             header('Location: ' . $location);
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'login
 }
 
 $sessionLifetime = max(300, (int)($config['session_lifetime_seconds'] ?? 43200));
-if (is_logged_in() && time() - (int)($_SESSION['fastdl_manager_login_time'] ?? 0) > $sessionLifetime) {
+if (is_logged_in() && time() - (int)($_SESSION['file_manager_login_time'] ?? 0) > $sessionLifetime) {
     $_SESSION = [];
     session_destroy();
     $location = app_base_url();

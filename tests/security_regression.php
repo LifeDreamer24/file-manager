@@ -31,6 +31,12 @@ check(normalize_return_path('stuff-and-more') === 'stuff-and-more', 'login deep-
 check(normalize_return_path('/maps/archive/') === 'maps/archive', 'nested login path is normalized');
 check(normalize_return_path('../config.php') === '', 'unsafe login redirect path is rejected');
 
+$environmentPassword = 'test-password-' . bin2hex(random_bytes(6));
+putenv('FILE_MANAGER_PASSWORD=' . $environmentPassword);
+check(app_password_configured($config), 'FILE_MANAGER_PASSWORD configures authentication');
+check(verify_app_password($config, $environmentPassword), 'FILE_MANAGER_PASSWORD is accepted at login');
+putenv('FILE_MANAGER_PASSWORD');
+
 check(path_is_within('/srv/files/maps', '/srv/files'), 'child path is accepted');
 check(path_is_within('/srv/files', '/srv/files'), 'base path is accepted');
 check(!path_is_within('/srv/files-private', '/srv/files'), 'similarly prefixed sibling is rejected');

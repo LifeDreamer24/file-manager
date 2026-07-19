@@ -39,6 +39,9 @@ body.light {
 * {
   box-sizing: border-box;
 }
+[hidden] {
+  display: none !important;
+}
 html {
   background: var(--bg);
 }
@@ -1159,6 +1162,7 @@ body.light .item-menu-list button {
   margin-top: 8px;
   min-height: 1.35em;
   line-height: 1.35;
+  white-space: pre-wrap;
 }
 .upload-progress-actions {
   display: flex;

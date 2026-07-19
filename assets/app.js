@@ -7,8 +7,9 @@ const state = {
   originalText: "",
   dirty: false,
   wrap: false,
-  theme: localStorage.getItem("fastdl-manager-theme") || "dark",
+  theme: localStorage.getItem("file-manager-theme") || "dark",
   failedUploads: [],
+  uploadFailures: [],
   activeUploads: new Set(),
   uploadCancelled: false,
   conflictResolver: null,
@@ -509,6 +510,36 @@ function cancelUploads() {
   state.uploadCancelled = true;
   for (const xhr of state.activeUploads) xhr.abort();
 }
+function handleUploadCancel() {
+  if (uploadInProgress) {
+    uploadCancel.disabled = true;
+    uploadCancel.textContent = "Cancelling...";
+    cancelUploads();
+    return;
+  }
+  uploadCancel.hidden = true;
+  uploadRetry.hidden = true;
+  hideUploadProgress(0);
+}
+function uploadFailureDetail(uploaded, skipped) {
+  const blocked = state.uploadFailures.filter(
+    (failure) => !failure.retryable,
+  ).length;
+  const retryable = state.failedUploads.length;
+  const counts = [`${uploaded} uploaded`, `${skipped} skipped`];
+  if (blocked) counts.push(`${blocked} blocked`);
+  if (retryable) counts.push(`${retryable} available to retry`);
+  const reasons = [
+    ...new Set(state.uploadFailures.map((failure) => failure.reason)),
+  ];
+  const visibleReasons = reasons.slice(0, 4);
+  if (reasons.length > visibleReasons.length) {
+    visibleReasons.push(
+      `${reasons.length - visibleReasons.length} more upload error(s).`,
+    );
+  }
+  return [counts.join(", ") + ".", ...visibleReasons].join("\n");
+}
 function uploadRequest(file, policy, onProgress) {
   return new Promise((resolve, reject) => {
     const form = new FormData();
@@ -548,7 +579,12 @@ function uploadRequest(file, policy, onProgress) {
         return;
       }
       if (xhr.status < 200 || xhr.status >= 300 || !data.ok) {
-        reject(responseError(data, xhr.status));
+        const error = responseError(data, xhr.status);
+        if (Array.isArray(data.errors) && data.errors.length) {
+          error.message = summarizeUploadErrors(data.errors);
+          error.retryable = false;
+        }
+        reject(error);
         return;
       }
       resolve(data);
@@ -588,8 +624,11 @@ async function uploadFiles(files, presetPolicy = null) {
   uploadInProgress = true;
   state.uploadCancelled = false;
   state.failedUploads = [];
+  state.uploadFailures = [];
   state.lastConflictPolicy = policy;
   setUploadControlsDisabled(true);
+  uploadCancel.disabled = false;
+  uploadCancel.textContent = "Cancel";
   uploadCancel.hidden = false;
   uploadRetry.hidden = true;
   const totalBytes = files.reduce(
@@ -597,7 +636,7 @@ async function uploadFiles(files, presetPolicy = null) {
     0,
   );
   const loaded = new Map(),
-    successful = new Set();
+    settled = new Set();
   let cursor = 0,
     uploaded = 0,
     skipped = 0;
@@ -631,9 +670,18 @@ async function uploadFiles(files, presetPolicy = null) {
         loaded.set(index, Number(file.size || 0));
         uploaded += (result.uploaded || []).length;
         skipped += (result.conflicts || []).length;
-        successful.add(index);
+        settled.add(index);
       } catch (error) {
-        if (!state.uploadCancelled) state.failedUploads.push(file);
+        if (!state.uploadCancelled) {
+          const retryable = error.retryable !== false;
+          const reason =
+            error.message && error.message !== "Request failed"
+              ? error.message
+              : `${fileRelativePath(file)} could not be uploaded.`;
+          state.uploadFailures.push({ file, reason, retryable });
+          if (retryable) state.failedUploads.push(file);
+          settled.add(index);
+        }
       }
       updateProgress();
     }
@@ -642,30 +690,41 @@ async function uploadFiles(files, presetPolicy = null) {
     await Promise.all(
       Array.from({ length: Math.min(2, files.length) }, worker),
     );
-    uploadCancel.hidden = true;
-    if (state.uploadCancelled)
-      state.failedUploads = files.filter((_, index) => !successful.has(index));
-    const failed = state.failedUploads.length;
     if (state.uploadCancelled) {
-      uploadRetry.hidden = failed === 0;
+      const retryFiles = new Set(state.failedUploads);
+      files.forEach((file, index) => {
+        if (!settled.has(index)) retryFiles.add(file);
+      });
+      state.failedUploads = [...retryFiles];
+    }
+    const failed = state.uploadFailures.length;
+    if (state.uploadCancelled) {
+      uploadCancel.disabled = false;
+      uploadCancel.textContent = "Close";
+      uploadCancel.hidden = false;
+      uploadRetry.hidden = state.failedUploads.length === 0;
       showUploadProgress(
         null,
         "Upload cancelled",
-        `${uploaded} uploaded, ${skipped} skipped, ${failed} available to retry.`,
+        `${uploaded} uploaded, ${skipped} skipped, ${state.failedUploads.length} available to retry.`,
         "partial",
       );
     } else if (failed) {
-      uploadRetry.hidden = false;
+      uploadCancel.disabled = false;
+      uploadCancel.textContent = "Close";
+      uploadCancel.hidden = false;
+      uploadRetry.hidden = state.failedUploads.length === 0;
       showUploadProgress(
         100,
-        "Upload finished with errors",
-        `${uploaded} uploaded, ${skipped} skipped, ${failed} available to retry.`,
+        state.failedUploads.length
+          ? "Upload finished with errors"
+          : "Upload blocked",
+        uploadFailureDetail(uploaded, skipped),
         "error",
       );
-      toast(
-        `${failed} upload${failed === 1 ? "" : "s"} failed. Use Retry failed.`,
-      );
+      toast(state.uploadFailures[0].reason);
     } else {
+      uploadCancel.hidden = true;
       showUploadProgress(
         100,
         "Upload complete",
@@ -975,10 +1034,10 @@ function setupDragAndDrop() {
       const paths = dragPathsForRow(row);
       e.dataTransfer.setData("text/plain", paths[0] || row.dataset.path);
       e.dataTransfer.setData(
-        "application/x-fastdl-paths",
+        "application/x-file-manager-paths",
         JSON.stringify(paths),
       );
-      e.dataTransfer.setData("application/x-fastdl-move", "1");
+      e.dataTransfer.setData("application/x-file-manager-move", "1");
       e.dataTransfer.effectAllowed = "move";
       document.querySelectorAll("tr[data-path]").forEach((r) => {
         if (paths.includes(r.dataset.path)) r.classList.add("dragging");
@@ -993,7 +1052,7 @@ function setupDragAndDrop() {
   document.querySelectorAll("[data-drop-folder]").forEach((target) => {
     target.addEventListener("dragover", (e) => {
       const dragged = e.dataTransfer.types.includes(
-        "application/x-fastdl-move",
+        "application/x-file-manager-move",
       );
       if (!dragged) return;
       e.preventDefault();
@@ -1009,7 +1068,7 @@ function setupDragAndDrop() {
       let paths = [];
       try {
         paths = JSON.parse(
-          e.dataTransfer.getData("application/x-fastdl-paths") || "[]",
+          e.dataTransfer.getData("application/x-file-manager-paths") || "[]",
         );
       } catch {
         paths = [];
@@ -1249,7 +1308,7 @@ function updateLines() {
 }
 function applyTheme() {
   document.body.classList.toggle("light", state.theme === "light");
-  localStorage.setItem("fastdl-manager-theme", state.theme);
+  localStorage.setItem("file-manager-theme", state.theme);
 }
 function toggleTheme() {
   state.theme = state.theme === "light" ? "dark" : "light";
@@ -1491,7 +1550,7 @@ uploadInput.addEventListener("change", () => uploadFiles(uploadInput.files));
 uploadFolderInput.addEventListener("change", () =>
   uploadFiles(uploadFolderInput.files),
 );
-uploadCancel.addEventListener("click", cancelUploads);
+uploadCancel.addEventListener("click", handleUploadCancel);
 uploadRetry.addEventListener("click", () => {
   const files = [...state.failedUploads];
   uploadRetry.hidden = true;
@@ -1503,7 +1562,7 @@ function isExternalFileDrag(e) {
     e.dataTransfer &&
     e.dataTransfer.types &&
     e.dataTransfer.types.includes("Files") &&
-    !e.dataTransfer.types.includes("application/x-fastdl-move")
+    !e.dataTransfer.types.includes("application/x-file-manager-move")
   );
 }
 function showUploadOverlay() {

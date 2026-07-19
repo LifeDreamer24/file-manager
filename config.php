@@ -1,19 +1,19 @@
 <?php
 /*
-  FastDL Web File Manager configuration
+  Web File Manager configuration
 
   IMPORTANT:
   1. Change the password below before uploading publicly.
-  2. Put your FastDL files inside the "files" folder, or change base_dir/public_base_url.
+  2. Put your managed files inside the "files" folder, or change base_dir/public_base_url.
   3. Make sure the web server user can write to files/folders you want to edit.
 */
 
 return [
-    // You can also set the FASTDL_MANAGER_PASSWORD environment variable instead.
+    // You can also set the FILE_MANAGER_PASSWORD environment variable instead.
     'password' => 'change-this-password',
 
     // Preferred alternative: a password_hash() value. You can also set
-    // FASTDL_MANAGER_PASSWORD_HASH in the server environment.
+    // FILE_MANAGER_PASSWORD_HASH in the server environment.
     'password_hash' => '',
 
     // Authentication/session protection.
@@ -26,8 +26,8 @@ return [
     'base_dir' => __DIR__ . '/files',
 
     // Public URL prefix used for Download / Copy URL.
-    // Example: 'https://example.com/fastdl/'
-    // Default works when your FastDL files are inside ./files/.
+    // Example: 'https://example.com/files/'
+    // Default works when your managed files are inside ./files/.
     'public_base_url' => 'files/',
 
     // Maximum text file size allowed in the editor.

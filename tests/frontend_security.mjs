@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 const index = readFileSync(new URL("../index.php", import.meta.url), "utf8");
 const app = readFileSync(new URL("../assets/app.js", import.meta.url), "utf8");
+const css = readFileSync(new URL("../assets/app.css", import.meta.url), "utf8");
 
 assert.ok(
   !/on(?:click|change|input|submit|load|error)\s*=/.test(index + app),
@@ -23,6 +24,19 @@ assert.ok(
 assert.ok(
   index.includes('name="path" value="<?= htmlspecialchars($requestedPath'),
   "login form preserves a normalized path",
+);
+assert.ok(
+  app.includes('uploadCancel.textContent = "Close"') &&
+    app.includes('uploadCancel.addEventListener("click", handleUploadCancel)'),
+  "the finished upload control closes the result panel",
+);
+assert.ok(
+  app.includes("summarizeUploadErrors(data.errors)"),
+  "blocked upload responses surface their server-provided reasons",
+);
+assert.ok(
+  /\[hidden\]\s*\{\s*display:\s*none\s*!important;\s*\}/.test(css),
+  "the hidden attribute wins over component display styles",
 );
 
 console.log("Frontend security regression checks passed.");

@@ -78,11 +78,11 @@ At minimum, set a strong password for the file manager login.
 The recommended production setup is an environment variable:
 
 ```text
-FASTDL_MANAGER_PASSWORD=use-a-long-unique-password
+FILE_MANAGER_PASSWORD=use-a-long-unique-password
 ```
 
 You can alternatively generate a `password_hash()` value and set
-`FASTDL_MANAGER_PASSWORD_HASH`, or configure the returned array directly:
+`FILE_MANAGER_PASSWORD_HASH`, or configure the returned array directly:
 
 ```php
 return [

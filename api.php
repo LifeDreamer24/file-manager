@@ -11,7 +11,7 @@ if (!$testing) {
 $config = require __DIR__ . '/config.php';
 
 $sessionLifetime = max(300, (int)($config['session_lifetime_seconds'] ?? 43200));
-if (!$testing && is_logged_in() && time() - (int)($_SESSION['fastdl_manager_login_time'] ?? 0) > $sessionLifetime) {
+if (!$testing && is_logged_in() && time() - (int)($_SESSION['file_manager_login_time'] ?? 0) > $sessionLifetime) {
     $_SESSION = [];
     session_destroy();
 }

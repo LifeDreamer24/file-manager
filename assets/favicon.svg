@@ -2,13 +2,12 @@
   <rect x="2" y="2" width="60" height="60" rx="15" fill="#171a21" stroke="#42d392" stroke-width="3" />
   <text
     x="32"
-    y="32"
+    y="40"
     fill="#edf2f7"
     font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     font-size="25"
     font-weight="800"
     letter-spacing="-1"
     text-anchor="middle"
-    dominant-baseline="central"
   >FM</text>
 </svg>

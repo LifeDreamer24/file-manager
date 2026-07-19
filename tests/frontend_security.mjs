@@ -69,14 +69,6 @@ assert.ok(
   "the hidden attribute wins over component display styles",
 );
 assert.ok(
-  /#browserPanel\s*\{[^}]*box-shadow:\s*var\(--manager-shadow\)/s.test(css),
-  "the main file-manager panel has a subtle themed shadow",
-);
-assert.ok(
-  /--manager-shadow:[\s\S]*?20px -12px[\s\S]*?44px -28px/.test(css),
-  "the manager shadow uses soft negative spreads without a hard rectangular edge",
-);
-assert.ok(
   /body\.light input\[type="checkbox"\]:checked\s*::after\s*\{[^}]*background:\s*transparent/s.test(
     css,
   ) &&

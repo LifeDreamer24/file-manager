@@ -81,6 +81,7 @@ $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT
 $loginAction = app_base_url() . ($requestedPath !== '' ? '?path=' . rawurlencode($requestedPath) : '');
 $faviconVersion = (string)(filemtime(__DIR__ . '/assets/favicon.svg') ?: 1);
 $cssVersion = (string)(filemtime(__DIR__ . '/assets/app.css') ?: 1);
+$loginThemeJsVersion = (string)(filemtime(__DIR__ . '/assets/login-theme.js') ?: 1);
 $jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
 ?>
 <!doctype html>
@@ -98,10 +99,18 @@ $jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
 </head>
 <body>
 <?php if (!$loggedIn): ?>
+  <script src="assets/login-theme.js?v=<?= $loginThemeJsVersion ?>"></script>
   <main class="login-wrap">
     <section class="login-card">
-      <h1><?= $appName ?></h1>
-      <p class="subtitle">Log in to manage and edit your hosted files.</p>
+      <div class="login-card-head">
+        <div>
+          <h1><?= $appName ?></h1>
+          <p class="subtitle">Log in to manage and edit your hosted files.</p>
+        </div>
+        <button id="themeToggle" class="theme-toggle" type="button" title="Theme: System" aria-label="Theme: System">
+          <span id="themeToggleIcon" aria-hidden="true">◐</span>
+        </button>
+      </div>
       <?php if ($error): ?><div class="error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
       <form method="post" action="<?= htmlspecialchars($loginAction, ENT_QUOTES, 'UTF-8') ?>">
         <input type="hidden" name="action" value="login" />

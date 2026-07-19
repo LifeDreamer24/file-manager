@@ -11,6 +11,8 @@ This project was built step by step with **OpenAI / ChatGPT** and customized int
 - Create new files and folders
 - Upload files or folders
 - Drag-and-drop uploads
+- Per-file upload queue with aggregate progress, cancellation, and retry
+- Safe conflict choices: skip, keep both, or replace
 - Rename files and folders
 - Move files and folders with a folder picker
 - Delete files and folders
@@ -26,6 +28,7 @@ This project was built step by step with **OpenAI / ChatGPT** and customized int
 - Copy the current file URL from the editor
 - Line numbers in the editor
 - Word wrap toggle
+- Edit-conflict detection and atomic saves
 - Basic formatting tools
 - Mobile-friendly responsive layout
 - Compact mobile file rows
@@ -54,7 +57,11 @@ A typical structure looks like this:
 public_html/
 ├── index.php
 ├── api.php
+├── bootstrap.php
 ├── config.php
+├── assets/
+│   ├── app.css
+│   └── app.js
 ├── .htaccess
 ├── README.md
 └── files/
@@ -68,13 +75,24 @@ Open `config.php` and adjust the settings for your server.
 
 At minimum, set a strong password for the file manager login.
 
-Example:
+The recommended production setup is an environment variable:
 
-```php
-$PASSWORD = 'change-this-password';
+```text
+FILE_MANAGER_PASSWORD=use-a-long-unique-password
 ```
 
-Use a long unique password, especially if this is hosted publicly.
+You can alternatively generate a `password_hash()` value and set
+`FILE_MANAGER_PASSWORD_HASH`, or configure the returned array directly:
+
+```php
+return [
+    'password' => 'use-a-long-unique-password',
+    // ...the remaining settings
+];
+```
+
+The application refuses to log in while the default `change-this-password`
+placeholder is still active.
 
 ## Usage
 
@@ -103,6 +121,18 @@ This is useful when you want shareable direct links, but keep these notes in min
 - Use HTTPS.
 - Use a strong password.
 - Do not upload this tool to an untrusted or shared environment without reviewing the configuration.
+- Uploading, extracting, renaming, and creating files use the same protected-name policy.
+- Symbolic links are rejected and paths are constrained to the managed directory.
+- ZIP archives are checked for unsafe paths, scripts, symlinks, excessive size,
+  excessive entry counts, and suspicious compression ratios before extraction.
+- Existing files are skipped unless you explicitly choose another conflict policy.
+- Login attempts are rate limited, sessions rotate after login, and
+  state-changing API requests require a CSRF token.
+- `files/.htaccess` disables script execution and forces active HTML/SVG/XML
+  content to download instead of running with the manager's authenticated origin.
+
+For strongest isolation, serve `public_base_url` from a separate, cookie-free
+subdomain in addition to the included server rules.
 
 ## Protected Files
 
@@ -121,9 +151,21 @@ This helps prevent accidental uploads or edits that could affect the file manage
 
 ## Requirements
 
-- PHP-enabled web server
+- PHP 8.0 or newer
 - ZIP support in PHP for ZIP download/extract features
+- Apache 2.4 with `mod_headers` is recommended for all included hardening rules
 - A modern web browser
+
+## Verification
+
+Run the regression checks with:
+
+```bash
+php tests/security_regression.php
+```
+
+GitHub Actions also performs PHP and JavaScript syntax checks and runs the
+security regression suite on every push and pull request.
 
 ## Notes
 
@@ -142,10 +184,4 @@ Special thanks to **LifeDreamer24** for the idea, testing, design direction, and
 
 ## License
 
-Use and modify this project for your own server as needed.
-
-Suggested footer:
-
-```text
-© 2026 LifeDreamer24. All rights reserved.
-```
+This project is released into the public domain under the [Unlicense](LICENSE).

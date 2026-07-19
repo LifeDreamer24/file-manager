@@ -1,0 +1,20 @@
+Options -Indexes -ExecCGI
+
+# Managed content must never execute as server-side code.
+<FilesMatch "\.(?:php[0-9]?|phtml|phar|cgi|pl|py|rb|sh|bash|asp|aspx|jsp|jspx|exe|dll|so|bat|cmd|ps1)$">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_mime.c>
+  RemoveHandler .php .php3 .php4 .php5 .php7 .php8 .phtml .phar .cgi .pl .py .rb .sh .bash
+  RemoveType .php .php3 .php4 .php5 .php7 .php8 .phtml .phar
+</IfModule>
+
+# Active browser content is downloaded instead of running with the manager's origin.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(?:html?|xhtml|svg|xml)$">
+    Header always set Content-Disposition "attachment"
+    Header always set Content-Security-Policy "sandbox; default-src 'none'"
+    Header always set X-Content-Type-Options "nosniff"
+  </FilesMatch>
+</IfModule>

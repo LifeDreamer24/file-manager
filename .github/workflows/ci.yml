@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: zip
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: PHP syntax
+        run: find . -name '*.php' -not -path './files/*' -print0 | xargs -0 -n1 php -l
+      - name: JavaScript syntax
+        run: node --check assets/app.js
+      - name: Security regression tests
+        run: |
+          php tests/security_regression.php
+          node tests/frontend_security.mjs

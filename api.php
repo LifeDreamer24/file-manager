@@ -1,9 +1,20 @@
 <?php
 declare(strict_types=1);
 
-session_start();
+require_once __DIR__ . '/bootstrap.php';
+$testing = defined('FILE_MANAGER_TESTING') && FILE_MANAGER_TESTING;
+if (!$testing) {
+    start_secure_session();
+    send_security_headers(true);
+}
 
 $config = require __DIR__ . '/config.php';
+
+$sessionLifetime = max(300, (int)($config['session_lifetime_seconds'] ?? 43200));
+if (!$testing && is_logged_in() && time() - (int)($_SESSION['file_manager_login_time'] ?? 0) > $sessionLifetime) {
+    $_SESSION = [];
+    session_destroy();
+}
 
 function json_response(array $data, int $status = 200): void {
     http_response_code($status);
@@ -12,13 +23,23 @@ function json_response(array $data, int $status = 200): void {
     exit;
 }
 
-function is_logged_in(): bool {
-    return !empty($_SESSION['fastdl_manager_logged_in']);
-}
-
 function require_login_json(): void {
     if (!is_logged_in()) {
         json_response(['ok' => false, 'error' => 'Not logged in.'], 401);
+    }
+}
+
+function request_csrf_token(): string {
+    return (string)($_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrf_token'] ?? '');
+}
+
+function require_post_json(): void {
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+        header('Allow: POST');
+        json_response(['ok' => false, 'error' => 'This action requires POST.'], 405);
+    }
+    if (!csrf_is_valid(request_csrf_token())) {
+        json_response(['ok' => false, 'error' => 'Invalid security token. Refresh the page and try again.'], 403);
     }
 }
 
@@ -51,6 +72,10 @@ function clean_name(string $name): string {
         json_response(['ok' => false, 'error' => 'Name cannot contain slashes.'], 400);
     }
 
+    if (preg_match('/[\x00-\x1F\x7F]/', $name) || strlen($name) > 255) {
+        json_response(['ok' => false, 'error' => 'Name contains control characters or is too long.'], 400);
+    }
+
     return $name;
 }
 
@@ -69,14 +94,37 @@ function ensure_base_dir(array $config): string {
 function full_path(array $config, string $rel): string {
     $base = ensure_base_dir($config);
     $rel = clean_rel_path($rel);
+    if ($rel !== '') {
+        [$allowedPath, $pathReason] = entry_path_allowed($config, $rel);
+        if (!$allowedPath) {
+            json_response(['ok' => false, 'error' => 'This path is protected. ' . $pathReason], 400);
+        }
+    }
     $full = $rel === '' ? $base : $base . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $rel);
 
     $check = file_exists($full) ? realpath($full) : realpath(dirname($full));
-    if ($check === false || strpos($check, $base) !== 0) {
+    if ($check === false || !path_is_within($check, $base)) {
         json_response(['ok' => false, 'error' => 'Path is outside the managed folder.'], 400);
     }
 
+    $relative = $rel === '' ? [] : explode('/', $rel);
+    $cursor = $base;
+    foreach ($relative as $part) {
+        $cursor .= DIRECTORY_SEPARATOR . $part;
+        if (file_exists($cursor) || is_link($cursor)) {
+            if (is_link($cursor)) {
+                json_response(['ok' => false, 'error' => 'Symbolic links are not supported.'], 400);
+            }
+        }
+    }
+
     return $full;
+}
+
+function path_is_within(string $path, string $base): bool {
+    $path = rtrim($path, DIRECTORY_SEPARATOR);
+    $base = rtrim($base, DIRECTORY_SEPARATOR);
+    return $path === $base || str_starts_with($path, $base . DIRECTORY_SEPARATOR);
 }
 
 
@@ -407,6 +455,10 @@ function is_hidden(array $config, string $name): bool {
 }
 
 function upload_allowed(array $config, string $name): array {
+    if (preg_match('/[\x00-\x1F\x7F]/', $name) || strlen($name) > 255) {
+        return [false, 'The filename contains control characters or is too long.'];
+    }
+
     if (empty($config['block_system_uploads'])) {
         return [true, ''];
     }
@@ -509,10 +561,11 @@ function format_bytes(int $bytes): string {
 }
 
 function rrmdir(string $path): bool {
-    if (!is_dir($path)) return false;
+    if (!is_dir($path) || is_link($path)) return false;
     foreach (scandir($path) ?: [] as $item) {
         if ($item === '.' || $item === '..') continue;
         $child = $path . DIRECTORY_SEPARATOR . $item;
+        if (is_link($child)) return false;
         if (is_dir($child)) {
             if (!rrmdir($child)) return false;
         } else {
@@ -544,6 +597,100 @@ function entry_name_allowed(array $config, string $name): array {
     return [true, ''];
 }
 
+function entry_path_allowed(array $config, string $path): array {
+    $path = str_replace('\\', '/', trim($path, '/'));
+    if ($path === '') return [false, 'The path is empty.'];
+    foreach (explode('/', $path) as $part) {
+        if ($part === '' || $part === '.' || $part === '..') {
+            return [false, 'The path contains an unsafe component.'];
+        }
+        [$allowed, $reason] = entry_name_allowed($config, $part);
+        if (!$allowed) return [false, $reason];
+    }
+    return [true, ''];
+}
+
+function conflict_policy(array $config, mixed $value): string {
+    $policy = is_string($value) ? strtolower($value) : '';
+    if (!in_array($policy, ['skip', 'keep_both', 'replace'], true)) {
+        $policy = strtolower((string)($config['default_conflict_policy'] ?? 'skip'));
+    }
+    return in_array($policy, ['skip', 'keep_both', 'replace'], true) ? $policy : 'skip';
+}
+
+function keep_both_path(string $path): string {
+    if (!file_exists($path) && !is_link($path)) return $path;
+    $dir = dirname($path);
+    $name = basename($path);
+    $ext = pathinfo($name, PATHINFO_EXTENSION);
+    $stem = $ext === '' ? $name : substr($name, 0, -(strlen($ext) + 1));
+    for ($i = 1; $i <= 10000; $i++) {
+        $candidateName = $stem . ' (' . $i . ')' . ($ext === '' ? '' : '.' . $ext);
+        $candidate = $dir . DIRECTORY_SEPARATOR . $candidateName;
+        if (!file_exists($candidate) && !is_link($candidate)) return $candidate;
+    }
+    json_response(['ok' => false, 'error' => 'Could not find an available conflict-free filename.'], 409);
+}
+
+function ensure_safe_directory_tree(string $base, string $relative): bool {
+    $baseReal = realpath($base);
+    if ($baseReal === false) return false;
+    $relative = str_replace('\\', '/', trim($relative, '/'));
+    if ($relative === '' || $relative === '.') return true;
+    $cursor = $baseReal;
+    foreach (explode('/', $relative) as $part) {
+        if ($part === '' || $part === '.' || $part === '..') return false;
+        $cursor .= DIRECTORY_SEPARATOR . $part;
+        if (is_link($cursor)) return false;
+        if (file_exists($cursor) && !is_dir($cursor)) return false;
+        if (!is_dir($cursor) && !mkdir($cursor, 0755)) return false;
+        $cursorReal = realpath($cursor);
+        if ($cursorReal === false || !path_is_within($cursorReal, $baseReal)) return false;
+    }
+    return true;
+}
+
+function resolve_destination(string $path, string $policy): array {
+    if (!file_exists($path) && !is_link($path)) return ['write', $path];
+    if ($policy === 'skip') return ['skip', $path];
+    if ($policy === 'keep_both') return ['write', keep_both_path($path)];
+    if (is_dir($path) || is_link($path)) return ['blocked', $path];
+    return ['write', $path];
+}
+
+function file_version(string $path): string {
+    $hash = hash_file('sha256', $path);
+    if ($hash === false) return '';
+    return $hash . ':' . (string)(filesize($path) ?: 0) . ':' . (string)(filemtime($path) ?: 0);
+}
+
+function atomic_write(string $path, string $content): bool {
+    $dir = dirname($path);
+    $temp = tempnam($dir, '.fm-write-');
+    if ($temp === false) return false;
+    $mode = is_file($path) ? fileperms($path) : false;
+    $written = file_put_contents($temp, $content, LOCK_EX);
+    if ($written === false || $written !== strlen($content)) {
+        @unlink($temp);
+        return false;
+    }
+    if ($mode !== false) @chmod($temp, $mode & 0777);
+    if (!rename($temp, $path)) {
+        @unlink($temp);
+        return false;
+    }
+    return true;
+}
+
+function zip_entry_is_symlink(ZipArchive $zip, int $index): bool {
+    $opsys = 0;
+    $attributes = 0;
+    if (!$zip->getExternalAttributesIndex($index, $opsys, $attributes)) return false;
+    if ($opsys !== ZipArchive::OPSYS_UNIX) return false;
+    $mode = ($attributes >> 16) & 0xF000;
+    return $mode === 0xA000;
+}
+
 function safe_zip_entry(string $entry): ?string {
     $entry = str_replace('\\', '/', $entry);
     $entry = ltrim($entry, '/');
@@ -560,6 +707,8 @@ function safe_zip_entry(string $entry): ?string {
     if (!$parts) return null;
     return implode('/', $parts);
 }
+
+if (defined('FILE_MANAGER_TESTING') && FILE_MANAGER_TESTING) return;
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
@@ -612,12 +761,14 @@ if ($action === 'download_batch') {
         exit;
     }
 
-    $input = json_decode(file_get_contents('php://input') ?: '{}', true);
-    if (!is_array($input)) {
-        json_response(['ok' => false, 'error' => 'Invalid JSON body.'], 400);
+    require_post_json();
+    $paths = [];
+    if (isset($_POST['paths'])) {
+        $paths = json_decode((string)$_POST['paths'], true);
+    } else {
+        $input = json_decode(file_get_contents('php://input') ?: '{}', true);
+        if (is_array($input)) $paths = $input['paths'] ?? [];
     }
-
-    $paths = $input['paths'] ?? [];
     if (!is_array($paths)) {
         json_response(['ok' => false, 'error' => 'paths must be an array.'], 400);
     }
@@ -626,6 +777,10 @@ if ($action === 'download_batch') {
 }
 
 require_login_json();
+
+if (!in_array($action, ['list', 'read'], true)) {
+    require_post_json();
+}
 
 if ($action === 'list') {
     $rel = clean_rel_path((string)($_GET['path'] ?? ''));
@@ -645,6 +800,8 @@ if ($action === 'list') {
 
         $full = $dir . DIRECTORY_SEPARATOR . $name;
         $entryRel = trim(($rel ? $rel . '/' : '') . $name, '/');
+
+        if (is_link($full)) continue;
 
         if (is_dir($full)) {
             $folderCount++;
@@ -724,6 +881,7 @@ if ($action === 'read') {
         'content' => $content,
         'size' => $size,
         'modified' => filemtime($file) ?: 0,
+        'version' => file_version($file),
         'public_url' => public_url($config, $rel),
     ]);
 }
@@ -736,6 +894,7 @@ if ($action === 'save') {
 
     $rel = clean_rel_path((string)($input['path'] ?? ''));
     $content = (string)($input['content'] ?? '');
+    $expectedVersion = (string)($input['expected_version'] ?? '');
     $file = full_path($config, $rel);
 
     if (!is_file($file)) {
@@ -751,6 +910,16 @@ if ($action === 'save') {
         json_response(['ok' => false, 'error' => 'File is not writable by the web server.'], 500);
     }
 
+    $currentVersion = file_version($file);
+    if ($expectedVersion === '' || !hash_equals($currentVersion, $expectedVersion)) {
+        json_response([
+            'ok' => false,
+            'error' => 'This file changed after you opened it. Reload it before saving to avoid overwriting newer changes.',
+            'code' => 'edit_conflict',
+            'current_version' => $currentVersion,
+        ], 409);
+    }
+
     if (!empty($config['create_backups'])) {
         $backupDir = (string)$config['backup_dir'];
         if (!is_dir($backupDir)) {
@@ -760,8 +929,7 @@ if ($action === 'save') {
         copy($file, rtrim($backupDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . date('Ymd-His') . '__' . $safeName);
     }
 
-    $written = file_put_contents($file, $content, LOCK_EX);
-    if ($written === false) {
+    if (!atomic_write($file, $content)) {
         json_response(['ok' => false, 'error' => 'Could not write file.'], 500);
     }
 
@@ -773,6 +941,7 @@ if ($action === 'save') {
         'path' => $rel,
         'size' => filesize($file) ?: 0,
         'modified' => filemtime($file) ?: 0,
+        'version' => file_version($file),
     ]);
 }
 
@@ -794,6 +963,8 @@ if ($action === 'upload') {
 
     $uploaded = [];
     $errors = [];
+    $conflicts = [];
+    $policy = conflict_policy($config, $_POST['conflict'] ?? null);
     $names = $_FILES['files']['name'];
     $tmpNames = $_FILES['files']['tmp_name'];
     $sizes = $_FILES['files']['size'];
@@ -853,15 +1024,14 @@ if ($action === 'upload') {
             continue;
         }
 
-        if (!is_dir($destParent)) {
-            if (!mkdir($destParent, 0755, true)) {
-                $errors[] = $uploadRelPath . ' was not uploaded. Could not create folder.';
-                continue;
-            }
+        $relativeParent = dirname($uploadRelPath);
+        if (!ensure_safe_directory_tree($dir, $relativeParent === '.' ? '' : $relativeParent)) {
+            $errors[] = $uploadRelPath . ' was not uploaded. Could not safely create its folder path.';
+            continue;
         }
 
         $parentReal = realpath($destParent);
-        if ($parentReal === false || strpos($parentReal, $baseReal) !== 0) {
+        if ($parentReal === false || !path_is_within($parentReal, $baseReal)) {
             $errors[] = $uploadRelPath . ' was not uploaded. Invalid upload path.';
             continue;
         }
@@ -871,20 +1041,33 @@ if ($action === 'upload') {
             continue;
         }
 
+        [$destinationAction, $resolvedDest] = resolve_destination($dest, $policy);
+        if ($destinationAction === 'skip') {
+            $conflicts[] = $uploadRelPath;
+            continue;
+        }
+        if ($destinationAction === 'blocked') {
+            $errors[] = $uploadRelPath . ' was not uploaded because the existing destination is not a replaceable file.';
+            continue;
+        }
+        $dest = $resolvedDest;
+
         if (!move_uploaded_file((string)$tmpNames[$i], $dest)) {
             $errors[] = $uploadRelPath . ' could not be moved.';
             continue;
         }
 
-        $uploaded[] = $uploadRelPath;
+        $uploaded[] = str_replace(DIRECTORY_SEPARATOR, '/', substr($dest, strlen($dir) + 1));
     }
 
     json_response([
         'ok' => count($errors) === 0,
         'uploaded' => $uploaded,
         'errors' => $errors,
+        'conflicts' => $conflicts,
+        'conflict_policy' => $policy,
         'message' => count($uploaded) . ' file(s) uploaded.',
-    ], count($uploaded) ? 200 : 400);
+    ], (count($uploaded) || count($conflicts)) ? 200 : 400);
 }
 
 if ($action === 'delete') {
@@ -935,6 +1118,11 @@ if ($action === 'rename') {
 
     $rel = clean_rel_path((string)($input['path'] ?? ''));
     $newName = clean_name((string)($input['new_name'] ?? ''));
+
+    [$allowedName, $nameReason] = entry_name_allowed($config, $newName);
+    if (!$allowedName) {
+        json_response(['ok' => false, 'error' => $newName . ' was not accepted. ' . $nameReason], 400);
+    }
 
     if ($rel === '') {
         json_response(['ok' => false, 'error' => 'Cannot rename root folder.'], 400);
@@ -1002,7 +1190,7 @@ if ($action === 'create') {
         }
     } else {
         $content = (string)($input['content'] ?? '');
-        if (file_put_contents($newPath, $content, LOCK_EX) === false) {
+        if (!atomic_write($newPath, $content)) {
             json_response(['ok' => false, 'error' => 'Could not create file.'], 500);
         }
     }
@@ -1044,6 +1232,10 @@ if ($action === 'move') {
     }
 
     $name = basename($source);
+    [$allowedName, $nameReason] = entry_name_allowed($config, $name);
+    if (!$allowedName) {
+        json_response(['ok' => false, 'error' => 'This item cannot be moved. ' . $nameReason], 400);
+    }
     $currentParentRel = dirname($rel);
     if ($currentParentRel === '.') $currentParentRel = '';
 
@@ -1083,6 +1275,7 @@ if ($action === 'extract') {
     }
 
     $rel = clean_rel_path((string)($input['path'] ?? ''));
+    $policy = conflict_policy($config, $input['conflict'] ?? null);
     $zipPath = full_path($config, $rel);
 
     if (!is_file($zipPath) || extension_of($zipPath) !== 'zip') {
@@ -1099,15 +1292,19 @@ if ($action === 'extract') {
     if (!empty($config['extract_zip_to_named_folder'])) {
         $folderName = pathinfo(basename($zipPath), PATHINFO_FILENAME);
         $folderName = clean_name($folderName ?: 'extracted');
+        [$folderAllowed, $folderReason] = entry_name_allowed($config, $folderName);
+        if (!$folderAllowed) {
+            json_response(['ok' => false, 'error' => 'Unsafe extraction folder name. ' . $folderReason], 400);
+        }
         $target = $parent . DIRECTORY_SEPARATOR . $folderName;
         $targetRel = trim(($parentRel ? $parentRel . '/' : '') . $folderName, '/');
-        if (!is_dir($target)) {
-            mkdir($target, 0755, true);
+        if (is_link($target)) {
+            json_response(['ok' => false, 'error' => 'Extraction target cannot be a symbolic link.'], 400);
         }
-    }
-
-    if (!is_writable($target)) {
-        json_response(['ok' => false, 'error' => 'Extract target is not writable.'], 500);
+        if (is_dir($target) && $policy === 'keep_both') {
+            $target = keep_both_path($target);
+            $targetRel = trim(($parentRel ? $parentRel . '/' : '') . basename($target), '/');
+        }
     }
 
     $zip = new ZipArchive();
@@ -1115,21 +1312,84 @@ if ($action === 'extract') {
         json_response(['ok' => false, 'error' => 'Could not open ZIP archive.'], 500);
     }
 
-    $count = 0;
-    $skipped = 0;
+    $maxEntries = max(1, (int)($config['max_zip_entries'] ?? 5000));
+    $maxEntrySize = max(1, (int)($config['max_zip_entry_size'] ?? 536870912));
+    $maxTotalSize = max($maxEntrySize, (int)($config['max_zip_uncompressed_size'] ?? 2147483648));
+    $maxRatio = max(1, (int)($config['max_zip_expansion_ratio'] ?? 200));
 
+    if ($zip->numFiles > $maxEntries) {
+        $zip->close();
+        json_response(['ok' => false, 'error' => 'ZIP contains too many entries.'], 400);
+    }
+
+    $entries = [];
+    $totalSize = 0;
+    $totalCompressed = 0;
     for ($i = 0; $i < $zip->numFiles; $i++) {
         $name = $zip->getNameIndex($i);
-        if ($name === false) {
-            $skipped++;
-            continue;
+        $stat = $zip->statIndex($i);
+        if ($name === false || !is_array($stat)) {
+            $zip->close();
+            json_response(['ok' => false, 'error' => 'ZIP contains an unreadable entry.'], 400);
+        }
+        if (zip_entry_is_symlink($zip, $i)) {
+            $zip->close();
+            json_response(['ok' => false, 'error' => 'ZIP symbolic links are not allowed.'], 400);
         }
 
         $safe = safe_zip_entry($name);
         if ($safe === null) {
-            $skipped++;
-            continue;
+            $zip->close();
+            json_response(['ok' => false, 'error' => 'ZIP contains an unsafe path.'], 400);
         }
+        [$allowedEntry, $entryReason] = entry_path_allowed($config, $safe);
+        if (!$allowedEntry) {
+            $zip->close();
+            json_response(['ok' => false, 'error' => 'Blocked ZIP entry "' . $safe . '". ' . $entryReason], 400);
+        }
+
+        $size = max(0, (int)($stat['size'] ?? 0));
+        $compressed = max(0, (int)($stat['comp_size'] ?? 0));
+        if ($size > $maxEntrySize) {
+            $zip->close();
+            json_response(['ok' => false, 'error' => 'ZIP entry "' . $safe . '" exceeds the extraction size limit.'], 400);
+        }
+        $totalSize += $size;
+        $totalCompressed += $compressed;
+        if ($totalSize > $maxTotalSize) {
+            $zip->close();
+            json_response(['ok' => false, 'error' => 'ZIP expanded size exceeds the extraction limit.'], 400);
+        }
+        $entries[] = ['index' => $i, 'name' => $name, 'safe' => $safe, 'dir' => str_ends_with($name, '/')];
+    }
+
+    if ($totalSize > 1024 * 1024 && $totalSize / max(1, $totalCompressed) > $maxRatio) {
+        $zip->close();
+        json_response(['ok' => false, 'error' => 'ZIP expansion ratio is too high.'], 400);
+    }
+
+    if (!is_dir($target) && !mkdir($target, 0755)) {
+        $zip->close();
+        json_response(['ok' => false, 'error' => 'Could not create extraction target.'], 500);
+    }
+    $targetReal = realpath($target);
+    $managedBase = ensure_base_dir($config);
+    if ($targetReal === false || !path_is_within($targetReal, $managedBase)) {
+        $zip->close();
+        json_response(['ok' => false, 'error' => 'Extraction target is outside the managed folder.'], 400);
+    }
+    if (!is_writable($target)) {
+        $zip->close();
+        json_response(['ok' => false, 'error' => 'Extract target is not writable.'], 500);
+    }
+
+    $count = 0;
+    $skipped = 0;
+    $conflicts = [];
+
+    foreach ($entries as $entry) {
+        $name = $entry['name'];
+        $safe = $entry['safe'];
 
         $dest = $target . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $safe);
 
@@ -1140,22 +1400,44 @@ if ($action === 'extract') {
             json_response(['ok' => false, 'error' => 'Extract target is invalid.'], 500);
         }
 
-        if (!is_dir($destParent)) {
-            mkdir($destParent, 0755, true);
-        }
-
-        $parentReal = realpath($destParent);
-        if ($parentReal === false || strpos($parentReal, $baseReal) !== 0) {
+        $relativeParent = dirname($safe);
+        if (!ensure_safe_directory_tree($target, $relativeParent === '.' ? '' : $relativeParent)) {
             $skipped++;
             continue;
         }
 
-        if (str_ends_with($name, '/')) {
+        $parentReal = realpath($destParent);
+        if ($parentReal === false || !path_is_within($parentReal, $baseReal)) {
+            $skipped++;
+            continue;
+        }
+
+        if ($entry['dir']) {
+            if (file_exists($dest) && !is_dir($dest)) {
+                $conflicts[] = $safe;
+                $skipped++;
+                continue;
+            }
             if (!is_dir($dest)) {
-                mkdir($dest, 0755, true);
+                if (!ensure_safe_directory_tree($target, $safe)) {
+                    $skipped++;
+                }
             }
             continue;
         }
+
+        [$destinationAction, $resolvedDest] = resolve_destination($dest, $policy);
+        if ($destinationAction === 'skip') {
+            $conflicts[] = $safe;
+            $skipped++;
+            continue;
+        }
+        if ($destinationAction === 'blocked') {
+            $conflicts[] = $safe;
+            $skipped++;
+            continue;
+        }
+        $dest = $resolvedDest;
 
         $stream = $zip->getStream($name);
         if (!$stream) {
@@ -1163,16 +1445,23 @@ if ($action === 'extract') {
             continue;
         }
 
-        $out = fopen($dest, 'wb');
+        $tempDest = tempnam(dirname($dest), '.fm-extract-');
+        $out = $tempDest === false ? false : fopen($tempDest, 'wb');
         if (!$out) {
+            if (is_string($tempDest)) @unlink($tempDest);
             fclose($stream);
             $skipped++;
             continue;
         }
 
-        stream_copy_to_stream($stream, $out);
+        $copied = stream_copy_to_stream($stream, $out);
         fclose($stream);
         fclose($out);
+        if ($copied === false || !rename($tempDest, $dest)) {
+            @unlink($tempDest);
+            $skipped++;
+            continue;
+        }
         $count++;
     }
 
@@ -1185,6 +1474,8 @@ if ($action === 'extract') {
         'target_path' => $targetRel,
         'extracted' => $count,
         'skipped' => $skipped,
+        'conflicts' => $conflicts,
+        'conflict_policy' => $policy,
     ]);
 }
 

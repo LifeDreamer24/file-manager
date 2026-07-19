@@ -12,6 +12,16 @@ return [
     // You can also set the FASTDL_MANAGER_PASSWORD environment variable instead.
     'password' => 'change-this-password',
 
+    // Preferred alternative: a password_hash() value. You can also set
+    // FASTDL_MANAGER_PASSWORD_HASH in the server environment.
+    'password_hash' => '',
+
+    // Authentication/session protection.
+    'login_max_attempts' => 5,
+    'login_window_seconds' => 15 * 60,
+    'login_lockout_seconds' => 15 * 60,
+    'session_lifetime_seconds' => 12 * 60 * 60,
+
     // Folder that will be managed/edited.
     'base_dir' => __DIR__ . '/files',
 
@@ -26,6 +36,16 @@ return [
     // Maximum upload size checked by the app.
     // Your PHP upload_max_filesize and post_max_size must also allow the file size.
     'max_upload_size' => 512 * 1024 * 1024,
+
+    // Existing upload/extraction destination policy: skip, keep_both, or replace.
+    // The interface sends the user's choice; this is the safe API fallback.
+    'default_conflict_policy' => 'skip',
+
+    // ZIP extraction resource limits.
+    'max_zip_entries' => 5000,
+    'max_zip_entry_size' => 512 * 1024 * 1024,
+    'max_zip_uncompressed_size' => 2 * 1024 * 1024 * 1024,
+    'max_zip_expansion_ratio' => 200,
 
     // Block dangerous/system files from being uploaded.
     // This prevents confusing hidden uploads and reduces server-side security risks.
@@ -76,8 +96,7 @@ return [
     'editable_extensions' => [
         'txt', 'cfg', 'ini', 'json', 'js', 'mjs', 'cjs', 'ts', 'tsx', 'jsx',
         'html', 'htm', 'xml', 'css', 'scss', 'md', 'yml', 'yaml', 'toml',
-        'csv', 'log', 'res', 'vmt', 'qc', 'lua', 'py', 'java', 'cs',
-        'cpp', 'c', 'h', 'hpp', 'php', 'rb', 'go', 'rs', 'sh', 'bat',
-        'ps1', 'sql', 'svg'
+        'csv', 'log', 'res', 'vmt', 'qc', 'lua', 'java', 'cs',
+        'cpp', 'c', 'h', 'hpp', 'go', 'rs', 'sql', 'svg'
     ],
 ];

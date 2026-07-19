@@ -158,6 +158,29 @@ body.light .badge {
   flex-wrap: nowrap;
   justify-content: flex-end;
 }
+.theme-toggle {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--text);
+  font-size: 1.15rem;
+}
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  border-color: rgba(66, 211, 146, 0.75);
+  background: var(--goodsoft);
+  box-shadow: 0 0 0 3px rgba(66, 211, 146, 0.16);
+  outline: 0;
+}
+body.light .theme-toggle {
+  background: rgba(255, 255, 255, 0.7);
+}
 .login-pill {
   display: inline-flex;
   align-items: center;

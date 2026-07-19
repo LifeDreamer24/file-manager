@@ -1,3 +1,11 @@
+const themeMedia = window.matchMedia("(prefers-color-scheme: light)");
+const storedTheme = localStorage.getItem("file-manager-theme-preference");
+const initialTheme = ["system", "light", "dark"].includes(storedTheme)
+  ? storedTheme
+  : "system";
+// Older releases wrote "dark" on every visit even without a user choice.
+localStorage.removeItem("file-manager-theme");
+
 const state = {
   path: new URL(location.href).searchParams.get("path") || "",
   entries: [],
@@ -7,7 +15,7 @@ const state = {
   originalText: "",
   dirty: false,
   wrap: false,
-  theme: localStorage.getItem("file-manager-theme") || "dark",
+  themePreference: initialTheme,
   failedUploads: [],
   uploadFailures: [],
   activeUploads: new Set(),
@@ -1337,11 +1345,39 @@ function updateLines() {
   lineNumbers.textContent = out;
 }
 function applyTheme() {
-  document.body.classList.toggle("light", state.theme === "light");
-  localStorage.setItem("file-manager-theme", state.theme);
+  const resolvedTheme =
+    state.themePreference === "system"
+      ? themeMedia.matches
+        ? "light"
+        : "dark"
+      : state.themePreference;
+  document.body.classList.toggle("light", resolvedTheme === "light");
+  document.documentElement.style.colorScheme = resolvedTheme;
+  localStorage.setItem(
+    "file-manager-theme-preference",
+    state.themePreference,
+  );
+  const labels = {
+    system: { icon: "◐", name: "System", next: "Light" },
+    light: { icon: "☀", name: "Light", next: "Dark" },
+    dark: { icon: "☾", name: "Dark", next: "System" },
+  };
+  const current = labels[state.themePreference];
+  const button = $("themeToggle");
+  if (button) {
+    $("themeToggleIcon").textContent = current.icon;
+    button.title = `Theme: ${current.name}. Click for ${current.next}.`;
+    button.setAttribute(
+      "aria-label",
+      `Theme: ${current.name}. Switch to ${current.next}.`,
+    );
+  }
 }
 function toggleTheme() {
-  state.theme = state.theme === "light" ? "dark" : "light";
+  state.themePreference =
+    { system: "light", light: "dark", dark: "system" }[
+      state.themePreference
+    ] || "system";
   applyTheme();
 }
 function fileIcon(name) {
@@ -1657,6 +1693,15 @@ $("wrapToggle").addEventListener("click", () => {
   $("wrapToggle").textContent = state.wrap ? "Wrap On" : "Wrap Off";
   updateLines();
 });
+$("themeToggle").addEventListener("click", toggleTheme);
+const handleSystemThemeChange = () => {
+  if (state.themePreference === "system") applyTheme();
+};
+if (typeof themeMedia.addEventListener === "function") {
+  themeMedia.addEventListener("change", handleSystemThemeChange);
+} else {
+  themeMedia.addListener(handleSystemThemeChange);
+}
 editorText.addEventListener("input", () => {
   markDirty();
   updateLines();

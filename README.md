@@ -33,7 +33,7 @@ This project was built step by step with **OpenAI / ChatGPT** and customized int
 - Mobile-friendly responsive layout
 - Compact mobile file rows
 - Three-dots action menus for clean file lists
-- Dark, modern green-accented theme
+- System-aware light and dark themes with a visible three-state toggle
 
 ## Mobile Support
 

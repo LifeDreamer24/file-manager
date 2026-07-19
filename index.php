@@ -119,6 +119,9 @@ $jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
         <p class="subtitle">Server-hosted file browser and editor for your content.</p>
       </div>
       <div class="header-actions">
+        <button id="themeToggle" class="theme-toggle" type="button" title="Theme: System" aria-label="Theme: System">
+          <span id="themeToggleIcon" aria-hidden="true">◐</span>
+        </button>
         <div class="login-pill">
           <span class="badge-dot"></span>
           <span>Logged in</span>

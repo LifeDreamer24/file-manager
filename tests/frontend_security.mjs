@@ -31,6 +31,21 @@ assert.ok(
   "frontend asset URLs change after deployment so stale upload code is not reused",
 );
 assert.ok(
+  index.includes('id="themeToggle"') && index.includes('id="themeToggleIcon"'),
+  "the theme control is visible and accessible in the manager header",
+);
+assert.ok(
+  app.includes('matchMedia("(prefers-color-scheme: light)")') &&
+    app.includes('themeMedia.addEventListener("change"') &&
+    app.includes('state.themePreference === "system"'),
+  "system theme changes are observed while the System preference is active",
+);
+assert.ok(
+  app.includes('file-manager-theme-preference') &&
+    app.includes('localStorage.removeItem("file-manager-theme")'),
+  "explicit theme choices use a new key and the forced-dark legacy value is migrated",
+);
+assert.ok(
   app.includes('uploadCancel.textContent = "Close"') &&
     app.includes('uploadCancel.addEventListener("click", handleUploadCancel)'),
   "the finished upload control closes the result panel",

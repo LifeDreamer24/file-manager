@@ -20,6 +20,8 @@ This project was built step by step with **OpenAI / ChatGPT** and customized int
 - Download folders or selected items as ZIP files
 - Extract ZIP archives
 - Copy public/direct URLs for files and folders
+- Play supported audio and video files without leaving the manager
+- Seek through media with authenticated byte-range streaming
 - Multi-select files and folders
 - Bulk actions for selected items
 - Built-in file editor
@@ -102,6 +104,7 @@ Common actions:
 
 - Click a folder name to open it.
 - Click an editable file name to open it in the editor.
+- Click a supported audio or video file to open the built-in media player.
 - Use the three-dots menu on each row for file or folder actions.
 - Use checkboxes to select multiple items and run bulk actions.
 - Use **New** to create files or folders.
@@ -175,6 +178,11 @@ Some behavior depends on the browser and server. For example:
 - Folder upload support depends on the browser.
 - Direct URL behavior depends on server rules and `.htaccess` configuration.
 - ZIP extraction requires server-side ZIP support.
+- Playback support depends on the browser and the codecs used inside each file.
+
+The player recognizes MP3, WAV, OGG/OGA, Opus, M4A, AAC, FLAC, MP4/M4V,
+WebM, OGV, and MOV files. The authenticated stream endpoint supports byte-range
+requests so compatible files can seek without downloading the whole file first.
 
 ## Credits
 

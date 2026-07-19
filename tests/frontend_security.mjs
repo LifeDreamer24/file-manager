@@ -26,6 +26,12 @@ assert.ok(
   "login form preserves a normalized path",
 );
 assert.ok(
+  index.includes('id="logoutPath"') &&
+    app.includes("input.value = state.path") &&
+    app.includes('addEventListener("submit", syncLogoutPath)'),
+  "logout submits the folder currently open in the client-side manager",
+);
+assert.ok(
   index.includes('assets/app.css?v=<?= $cssVersion ?>') &&
     index.includes('assets/app.js?v=<?= $jsVersion ?>'),
   "frontend asset URLs change after deployment so stale upload code is not reused",

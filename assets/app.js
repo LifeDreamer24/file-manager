@@ -62,6 +62,10 @@ function cleanPath(path) {
     .replace(/^\/+|\/+$/g, "")
     .replace(/\/{2,}/g, "/");
 }
+function syncLogoutPath() {
+  const input = $("logoutPath");
+  if (input) input.value = state.path;
+}
 function apiUrl(action, params = {}) {
   const u = new URL("api.php", location.href);
   u.searchParams.set("action", action);
@@ -249,6 +253,7 @@ function renderRow(item) {
 }
 function openFolder(path) {
   state.path = cleanPath(path);
+  syncLogoutPath();
   state.selected.clear();
   search.value = "";
   const u = new URL(location.href);
@@ -1752,6 +1757,7 @@ window.addEventListener("keydown", (e) => {
 });
 window.addEventListener("popstate", () => {
   state.path = cleanPath(new URL(location.href).searchParams.get("path") || "");
+  syncLogoutPath();
   state.selected.clear();
   search.value = "";
   loadFolder();
@@ -1763,5 +1769,9 @@ window.addEventListener("beforeunload", (e) => {
   }
 });
 applyTheme();
+syncLogoutPath();
+document
+  .querySelector(".logout-form")
+  ?.addEventListener("submit", syncLogoutPath);
 updateMobileMenuState();
 loadFolder();

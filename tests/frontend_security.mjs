@@ -72,5 +72,21 @@ assert.ok(
   /#browserPanel\s*\{[^}]*box-shadow:\s*var\(--manager-shadow\)/s.test(css),
   "the main file-manager panel has a subtle themed shadow",
 );
+assert.ok(
+  /body\.light input\[type="checkbox"\]:checked\s*::after\s*\{[^}]*background:\s*transparent/s.test(
+    css,
+  ) &&
+    /body\.light input\[type="checkbox"\]:checked,[\s\S]*?background-color:\s*var\(--good\)/.test(
+      css,
+    ),
+  "light-mode checkboxes retain a clear check shape on the selected background",
+);
+assert.ok(
+  /body\.light\s*\{[^}]*--name-hover:\s*#087a55/s.test(css) &&
+    /\.name\.file-name:hover span:last-child\s*\{[^}]*color:\s*var\(--name-hover\)/s.test(
+      css,
+    ),
+  "light-mode filename hover text uses a darker accessible green",
+);
 
 console.log("Frontend security regression checks passed.");

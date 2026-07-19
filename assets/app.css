@@ -8,6 +8,7 @@
   --line: #303847;
   --accent: #42d392;
   --accent2: #8ff0c1;
+  --name-hover: #8ff0c1;
   --soft: rgba(66, 211, 146, 0.14);
   --good: #42d392;
   --goodsoft: rgba(66, 211, 146, 0.14);
@@ -35,6 +36,7 @@ body.light {
   --muted: #667085;
   --line: #d7dee8;
   --soft: rgba(66, 211, 146, 0.16);
+  --name-hover: #087a55;
   --shadow: 0 18px 45px rgba(31, 41, 55, 0.12);
   --manager-shadow: 0 8px 22px rgba(31, 41, 55, 0.1);
 }
@@ -739,10 +741,18 @@ body.light input[type="checkbox"] {
 body.light input[type="checkbox"]:hover {
   border-color: #a9b5c4;
 }
-body.light input[type="checkbox"]:checked::after,
+body.light input[type="checkbox"]:checked,
+body.light input[type="checkbox"]:indeterminate {
+  border-color: var(--good);
+  background-color: var(--good);
+}
+body.light input[type="checkbox"]:checked::after {
+  border-color: #123b2e;
+  background: transparent;
+}
 body.light input[type="checkbox"]:indeterminate::after {
-  border-color: #425163;
-  background: #425163;
+  border-color: transparent;
+  background: #123b2e;
 }
 tbody tr.selected {
   background: rgba(66, 211, 146, 0.115);
@@ -936,7 +946,7 @@ tbody tr:hover {
   cursor: pointer;
 }
 .name.file-name:hover span:last-child {
-  color: var(--accent2);
+  color: var(--name-hover);
 }
 .icon {
   display: inline-grid;

@@ -554,10 +554,6 @@ body.light .login-card {
   border-bottom-left-radius: 14px;
   border-bottom-right-radius: 14px;
 }
-.editor-shell {
-  position: relative;
-  z-index: 5;
-}
 #browserPanel .item-menu.open {
   z-index: 300;
 }
@@ -1219,25 +1215,40 @@ body.light .item-menu-list button {
   }
 }
 
-.editor-shell {
-  display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
-  transform: translateY(-8px) scale(0.992);
-  transition:
-    grid-template-rows 0.2s ease,
-    opacity 0.16s ease,
-    transform 0.16s ease;
-  margin-top: 12px;
-}
-.editor-shell.open {
-  grid-template-rows: 1fr;
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-.editor-shell > div {
-  min-height: 0;
+body.editor-open {
   overflow: hidden;
+}
+.editor-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: none;
+  place-items: center;
+  padding: 22px;
+  background: rgba(8, 10, 14, 0.72);
+  backdrop-filter: blur(9px);
+}
+.editor-modal.show {
+  display: grid;
+  animation: overlayIn 0.14s ease both;
+}
+body.light .editor-modal {
+  background: rgba(45, 55, 72, 0.46);
+}
+.editor-shell {
+  width: min(1100px, calc(100vw - 32px));
+  height: min(820px, calc(100dvh - 44px));
+  max-height: calc(100dvh - 44px);
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  margin: 0;
+  overflow: hidden;
+  border-color: rgba(66, 211, 146, 0.4);
+  border-radius: 20px;
+  background: rgba(23, 26, 33, 0.98);
+}
+body.light .editor-shell {
+  background: rgba(255, 255, 255, 0.98);
 }
 .editor-head {
   display: flex;
@@ -1250,6 +1261,7 @@ body.light .item-menu-list button {
 }
 .editor-title {
   min-width: 0;
+  flex: 1;
 }
 .editor-title strong {
   display: block;
@@ -1274,6 +1286,12 @@ body.light .item-menu-list button {
 .editor-status.dirty {
   color: var(--warn);
   font-weight: 700;
+}
+.editor-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
 }
 .editor-tools {
   display: flex;
@@ -1301,6 +1319,10 @@ body.light .editor-tools {
   grid-template-columns: 58px 1fr;
   min-height: 430px;
   background: var(--panel3);
+}
+.editor-shell .editor-body {
+  min-height: 0;
+  overflow: hidden;
 }
 .lines {
   padding: 14px 8px;
@@ -1331,6 +1353,14 @@ textarea {
   tab-size: 2;
   white-space: pre;
   overflow: auto;
+}
+.editor-shell textarea,
+.editor-shell .lines {
+  min-height: 0;
+  height: 100%;
+}
+.editor-shell textarea {
+  resize: none;
 }
 textarea:focus {
   border-color: transparent;
@@ -2279,55 +2309,72 @@ body.light .move-list {
       font-size: 0.9rem;
     }
   }
-  .editor-shell {
-    margin-top: 14px;
+  .editor-modal {
+    padding: 10px;
   }
-  .editor-title,
-  .editor-title strong,
-  .editor-title span {
-    width: 100%;
+  .editor-modal .editor-shell {
+    width: calc(100vw - 20px);
+    height: calc(100dvh - 20px);
+    max-height: calc(100dvh - 20px);
+    margin: 0;
+    border-radius: 16px;
+  }
+  .editor-shell .editor-head {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+  .editor-shell .editor-title {
+    width: auto;
+    min-width: 0;
+  }
+  .editor-shell .editor-title strong,
+  .editor-shell .editor-title span {
+    width: auto;
   }
   .editor-status {
     white-space: normal;
   }
-  .editor-tools {
+  .editor-shell .editor-tools {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
     padding: 10px;
+    max-height: 34dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
-  .editor-tools .spacer {
+  .editor-shell .editor-tools .spacer {
     display: none;
   }
-  .editor-tools button,
-  .editor-tools select {
+  .editor-shell .editor-tools button,
+  .editor-shell .editor-tools select {
     width: 100%;
     min-height: 44px;
     padding: 10px 8px;
     border-radius: 11px;
     font-size: 0.94rem;
   }
-  .editor-tools select {
+  .editor-shell .editor-tools select {
     grid-column: 1 / -1;
   }
-  .editor-body {
+  .editor-shell .editor-body {
     grid-template-columns: 42px 1fr;
-    min-height: 55dvh;
-    max-height: 70dvh;
+    min-height: 0;
+    max-height: none;
     overflow: hidden;
   }
-  .lines,
-  textarea {
-    min-height: 55dvh;
+  .editor-shell .lines,
+  .editor-shell textarea {
+    min-height: 0;
     font-size: 13px;
     line-height: 1.55;
   }
-  textarea {
+  .editor-shell textarea {
     padding: 12px 10px;
     -webkit-overflow-scrolling: touch;
-    resize: vertical;
+    resize: none;
   }
-  .lines {
+  .editor-shell .lines {
     padding: 12px 6px;
   }
   .editor-note {

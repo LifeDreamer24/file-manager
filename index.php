@@ -189,52 +189,6 @@ $jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
     </section>
     <div id="selectionBarHost" class="selection-bar-host"></div>
 
-    <section id="editorShell" class="editor-shell" aria-label="File editor">
-      <div>
-        <section class="editor">
-          <div class="editor-head">
-            <div class="editor-title">
-              <strong id="editorName">No file selected</strong>
-              <span id="editorPath">Click a text file name from the file browser to edit it.</span>
-            </div>
-            <div id="editorStatus" class="editor-status">Idle</div>
-          </div>
-
-          <div class="editor-tools">
-            <button id="saveFile" type="button" disabled>Save</button>
-            <button id="downloadEditor" type="button" disabled>Download</button>
-            <button id="copyFileUrl" type="button" disabled>Copy URL</button>
-            <button id="closeEditor" type="button">Close</button>
-
-            <span class="spacer"></span>
-
-            <select id="syntaxMode" title="Formatter">
-              <option value="auto">Auto format</option>
-              <option value="plain">Plain text</option>
-              <option value="json">JSON</option>
-              <option value="html">HTML/XML</option>
-              <option value="css">CSS</option>
-              <option value="js">JavaScript</option>
-              <option value="cfg">CFG/INI/RES/VMT</option>
-            </select>
-            <button id="formatFile" type="button" disabled>Format</button>
-            <button id="trimLines" type="button" disabled>Trim lines</button>
-            <button id="tabsToSpaces" type="button" disabled>Tabs → Spaces</button>
-            <button id="wrapToggle" type="button" disabled>Wrap Off</button>
-          </div>
-
-          <div class="editor-body">
-            <div id="lineNumbers" class="lines">1</div>
-            <textarea id="editorText" spellcheck="false" disabled placeholder="File content will appear here..."></textarea>
-          </div>
-
-          <div class="editor-note">
-            <strong>Save</strong> writes directly to the server file.
-          </div>
-        </section>
-      </div>
-    </section>
-
     <p class="footer">LifeDreamer24 · Released under the Unlicense</p>
   </main>
 
@@ -245,6 +199,52 @@ $jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
       <strong>Drop files or folders to upload</strong>
       <span>Files will be uploaded in the current directory.</span>
     </div>
+  </div>
+
+  <div id="editorModal" class="editor-modal" aria-hidden="true">
+    <section id="editorShell" class="editor editor-shell" role="dialog" aria-modal="true" aria-labelledby="editorName" aria-describedby="editorPath">
+      <div class="editor-head">
+        <div class="editor-title">
+          <strong id="editorName">No file selected</strong>
+          <span id="editorPath">Click a text file name from the file browser to edit it.</span>
+        </div>
+        <div class="editor-head-actions">
+          <div id="editorStatus" class="editor-status">Idle</div>
+          <button id="closeEditor" class="move-close" type="button" aria-label="Close editor" title="Close editor"><span aria-hidden="true">×</span></button>
+        </div>
+      </div>
+
+      <div class="editor-tools">
+        <button id="saveFile" type="button" disabled>Save</button>
+        <button id="downloadEditor" type="button" disabled>Download</button>
+        <button id="copyFileUrl" type="button" disabled>Copy URL</button>
+
+        <span class="spacer"></span>
+
+        <select id="syntaxMode" title="Formatter">
+          <option value="auto">Auto format</option>
+          <option value="plain">Plain text</option>
+          <option value="json">JSON</option>
+          <option value="html">HTML/XML</option>
+          <option value="css">CSS</option>
+          <option value="js">JavaScript</option>
+          <option value="cfg">CFG/INI/RES/VMT</option>
+        </select>
+        <button id="formatFile" type="button" disabled>Format</button>
+        <button id="trimLines" type="button" disabled>Trim lines</button>
+        <button id="tabsToSpaces" type="button" disabled>Tabs → Spaces</button>
+        <button id="wrapToggle" type="button" disabled>Wrap Off</button>
+      </div>
+
+      <div class="editor-body">
+        <div id="lineNumbers" class="lines">1</div>
+        <textarea id="editorText" spellcheck="false" disabled placeholder="File content will appear here..."></textarea>
+      </div>
+
+      <div class="editor-note">
+        <strong>Save</strong> writes directly to the server file.
+      </div>
+    </section>
   </div>
 
   <div id="moveModal" class="move-modal" aria-hidden="true">

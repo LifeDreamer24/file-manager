@@ -21,6 +21,7 @@ const state = {
   activeUploads: new Set(),
   uploadCancelled: false,
   conflictResolver: null,
+  editorReturnFocus: null,
   media: null,
   mediaReturnFocus: null,
 };
@@ -32,7 +33,8 @@ const content = $("content"),
   breadcrumbs = $("breadcrumbs"),
   stats = $("stats"),
   search = $("search");
-const editorShell = $("editorShell"),
+const editorModal = $("editorModal"),
+  editorShell = $("editorShell"),
   editorName = $("editorName"),
   editorPath = $("editorPath"),
   editorStatus = $("editorStatus"),
@@ -1185,6 +1187,7 @@ async function editFile(path) {
       lineNumbers.scrollTop = 0;
       editorText.selectionStart = 0;
       editorText.selectionEnd = 0;
+      editorText.focus();
     });
   } catch (e) {
     state.editing = null;
@@ -1288,6 +1291,7 @@ async function saveFile() {
     state.originalText = editorText.value;
     state.dirty = false;
     setEditorStatus("Saved", false);
+    setEditorControls(true);
     toast("Saved.");
     await loadFolder();
   } catch (e) {
@@ -1298,14 +1302,14 @@ async function saveFile() {
     toast(e.message || String(e));
   }
 }
-function openEditorShell(scroll = true) {
+function openEditorShell() {
+  if (!editorModal.classList.contains("show")) {
+    state.editorReturnFocus = document.activeElement;
+  }
+  editorModal.classList.add("show");
+  editorModal.setAttribute("aria-hidden", "false");
   editorShell.classList.add("open");
-  if (scroll)
-    setTimeout(
-      () =>
-        editorShell.scrollIntoView({ behavior: "smooth", block: "nearest" }),
-      70,
-    );
+  document.body.classList.add("editor-open");
 }
 function closeEditor(force = false) {
   if (
@@ -1313,10 +1317,12 @@ function closeEditor(force = false) {
     state.dirty &&
     !confirm("Close editor and discard unsaved changes?")
   )
-    return;
+    return false;
+  const returnFocus = state.editorReturnFocus;
   state.editing = null;
   state.originalText = "";
   state.dirty = false;
+  state.editorReturnFocus = null;
   editorText.value = "";
   editorText.disabled = true;
   editorText.classList.remove("wrap");
@@ -1325,8 +1331,13 @@ function closeEditor(force = false) {
     "Click a text file name from the file browser to edit it.";
   setEditorStatus("Idle", false);
   setEditorControls(false);
+  editorModal.classList.remove("show");
+  editorModal.setAttribute("aria-hidden", "true");
   editorShell.classList.remove("open");
+  document.body.classList.remove("editor-open");
   updateLines();
+  if (returnFocus && document.contains(returnFocus)) returnFocus.focus();
+  return true;
 }
 function setEditorControls(on) {
   $("saveFile").disabled = !on || !state.dirty;
@@ -1863,6 +1874,9 @@ conflictModal.addEventListener("click", (e) => {
   else if (e.target === conflictModal) closeConflictModal(null);
 });
 $("conflictCancel").addEventListener("click", () => closeConflictModal(null));
+editorModal.addEventListener("click", (e) => {
+  if (e.target === editorModal) closeEditor();
+});
 $("mediaClose").addEventListener("click", closeMedia);
 $("mediaDone").addEventListener("click", closeMedia);
 mediaModal.addEventListener("click", (e) => {
@@ -1878,6 +1892,7 @@ window.addEventListener("keydown", (e) => {
   if (state.media) closeMedia();
   else if (state.conflictResolver) closeConflictModal(null);
   else if (state.movePicker) closeMovePicker();
+  else if (editorModal.classList.contains("show")) closeEditor();
 });
 window.addEventListener("popstate", () => {
   state.path = cleanPath(new URL(location.href).searchParams.get("path") || "");

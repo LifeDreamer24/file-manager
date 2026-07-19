@@ -48,8 +48,11 @@ assert.ok(
 assert.ok(
   /<rect[^>]*rx="15"/.test(favicon) &&
     /font-family="ui-sans-serif, system-ui/.test(favicon) &&
+    /x="32"[\s\S]*y="32"[\s\S]*text-anchor="middle"[\s\S]*dominant-baseline="central"/.test(
+      favicon,
+    ) &&
     />FM<\/text>/.test(favicon.replace(/\s+/g, "")),
-  "the favicon is a rounded FM mark using the manager's font stack",
+  "the favicon is a centered rounded FM mark using the manager's font stack",
 );
 assert.ok(
   index.includes('id="themeToggle"') && index.includes('id="themeToggleIcon"'),

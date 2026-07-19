@@ -1230,6 +1230,7 @@ function openMedia(path, trigger = null) {
 
   const player = item.media_type === "audio" ? audioPlayer : videoPlayer;
   player.hidden = false;
+  player.volume = 0.25;
   player.src = fileStreamUrl(item);
   player.load();
 

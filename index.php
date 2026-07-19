@@ -221,19 +221,24 @@ $jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
 
         <span class="spacer"></span>
 
-        <select id="syntaxMode" title="Formatter">
-          <option value="auto">Auto format</option>
-          <option value="plain">Plain text</option>
-          <option value="json">JSON</option>
-          <option value="html">HTML/XML</option>
-          <option value="css">CSS</option>
-          <option value="js">JavaScript</option>
-          <option value="cfg">CFG/INI/RES/VMT</option>
-        </select>
-        <button id="formatFile" type="button" disabled>Format</button>
-        <button id="trimLines" type="button" disabled>Trim lines</button>
-        <button id="tabsToSpaces" type="button" disabled>Tabs → Spaces</button>
-        <button id="wrapToggle" type="button" disabled>Wrap Off</button>
+        <div id="editorToolsMenuGroup" class="editor-tools-menu-group">
+          <button id="editorToolsMenuBtn" class="editor-tools-menu-toggle" type="button" aria-haspopup="true" aria-expanded="false">Tools ▾</button>
+          <div class="editor-tools-menu">
+            <select id="syntaxMode" title="Formatter">
+              <option value="auto">Auto format</option>
+              <option value="plain">Plain text</option>
+              <option value="json">JSON</option>
+              <option value="html">HTML/XML</option>
+              <option value="css">CSS</option>
+              <option value="js">JavaScript</option>
+              <option value="cfg">CFG/INI/RES/VMT</option>
+            </select>
+            <button id="formatFile" type="button" disabled>Format</button>
+            <button id="trimLines" type="button" disabled>Trim lines</button>
+            <button id="tabsToSpaces" type="button" disabled>Tabs → Spaces</button>
+            <button id="wrapToggle" type="button" disabled>Wrap Off</button>
+          </div>
+        </div>
       </div>
 
       <div class="editor-body">

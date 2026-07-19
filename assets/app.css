@@ -1314,6 +1314,13 @@ body.light .editor-tools {
 .editor-tools .spacer {
   flex: 1;
 }
+.editor-tools-menu-group,
+.editor-tools-menu {
+  display: contents;
+}
+.editor-tools-menu-toggle {
+  display: none;
+}
 .editor-body {
   display: grid;
   grid-template-columns: 58px 1fr;
@@ -2336,12 +2343,12 @@ body.light .move-list {
   }
   .editor-shell .editor-tools {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    padding: 10px;
-    max-height: 34dvh;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    padding: 8px;
+    overflow: visible;
+    position: relative;
+    z-index: 5;
   }
   .editor-shell .editor-tools .spacer {
     display: none;
@@ -2349,13 +2356,53 @@ body.light .move-list {
   .editor-shell .editor-tools button,
   .editor-shell .editor-tools select {
     width: 100%;
-    min-height: 44px;
-    padding: 10px 8px;
-    border-radius: 11px;
-    font-size: 0.94rem;
+    min-height: 38px;
+    padding: 7px 5px;
+    border-radius: 10px;
+    font-size: 0.84rem;
   }
-  .editor-shell .editor-tools select {
+  .editor-shell .editor-tools-menu-group {
+    position: relative;
+    display: block;
     grid-column: 1 / -1;
+    min-width: 0;
+  }
+  .editor-shell .editor-tools-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .editor-shell .editor-tools-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 8;
+    display: none;
+    width: min(330px, calc(100vw - 36px));
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 8px;
+    border: 1px solid rgba(66, 211, 146, 0.45);
+    border-radius: 12px;
+    background: rgba(23, 26, 33, 0.99);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.38);
+  }
+  body.light .editor-shell .editor-tools-menu {
+    background: rgba(255, 255, 255, 0.99);
+    box-shadow: 0 18px 45px rgba(31, 41, 55, 0.16);
+  }
+  .editor-shell .editor-tools-menu-group.open .editor-tools-menu {
+    display: grid;
+    animation: toastIn 0.14s ease both;
+  }
+  .editor-shell .editor-tools-menu select {
+    grid-column: 1 / -1;
+  }
+  .editor-shell .editor-tools-menu button,
+  .editor-shell .editor-tools-menu select {
+    min-height: 40px;
+    padding: 8px;
+    font-size: 0.9rem;
   }
   .editor-shell .editor-body {
     grid-template-columns: 42px 1fr;
@@ -3017,7 +3064,7 @@ body.light .move-list {
   }
 }
 
-/* Mobile portrait dropdown fix: keep row menus opening downward and let them overflow cleanly */
+/* Keep mobile row menus inside the viewport, opening upward near the bottom. */
 @media (max-width: 760px) {
   #content .file-table .item-menu {
     position: relative;
@@ -3033,18 +3080,15 @@ body.light .move-list {
     left: auto !important;
     right: 0 !important;
     width: min(220px, calc(100vw - 28px)) !important;
-    max-height: min(55dvh, 320px) !important;
+    max-height: min(55dvh, 320px, var(--item-menu-max-height, 320px)) !important;
     overflow: auto !important;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     z-index: 241 !important;
   }
-}
-
-/* When a mobile row menu is open, reserve space below the browser panel so the dropdown does not overlap the footer/background */
-@media (max-width: 760px) {
-  body.mobile-menu-open #browserPanel {
-    margin-bottom: 260px !important;
+  #content .file-table .item-menu.open-up .item-menu-list {
+    top: auto !important;
+    bottom: calc(100% + 8px) !important;
   }
 }
 

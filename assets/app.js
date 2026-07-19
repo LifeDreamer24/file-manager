@@ -39,7 +39,9 @@ const editorModal = $("editorModal"),
   editorPath = $("editorPath"),
   editorStatus = $("editorStatus"),
   editorText = $("editorText"),
-  lineNumbers = $("lineNumbers");
+  lineNumbers = $("lineNumbers"),
+  editorToolsMenuGroup = $("editorToolsMenuGroup"),
+  editorToolsMenuBtn = $("editorToolsMenuBtn");
 const uploadOverlay = $("uploadOverlay"),
   uploadInput = $("uploadInput"),
   uploadFolderInput = $("uploadFolderInput"),
@@ -1311,6 +1313,10 @@ function openEditorShell() {
   editorShell.classList.add("open");
   document.body.classList.add("editor-open");
 }
+function closeEditorToolsMenu() {
+  editorToolsMenuGroup.classList.remove("open");
+  editorToolsMenuBtn.setAttribute("aria-expanded", "false");
+}
 function closeEditor(force = false) {
   if (
     !force &&
@@ -1331,6 +1337,7 @@ function closeEditor(force = false) {
     "Click a text file name from the file browser to edit it.";
   setEditorStatus("Idle", false);
   setEditorControls(false);
+  closeEditorToolsMenu();
   editorModal.classList.remove("show");
   editorModal.setAttribute("aria-hidden", "true");
   editorShell.classList.remove("open");
@@ -1604,10 +1611,43 @@ function updateMobileMenuState() {
     window.innerWidth <= 760 && !!document.querySelector(".item-menu.open");
   document.body.classList.toggle("mobile-menu-open", hasOpen);
 }
+function positionItemMenu(menu) {
+  const list = menu?.querySelector(".item-menu-list");
+  const toggle = menu?.querySelector(".item-menu-toggle");
+  if (!list || !toggle) return;
+
+  menu.classList.remove("open-up");
+  list.style.removeProperty("--item-menu-max-height");
+  if (window.innerWidth > 760) return;
+
+  const rect = toggle.getBoundingClientRect();
+  const viewportTop = window.visualViewport?.offsetTop || 0;
+  const viewportHeight = window.visualViewport?.height || window.innerHeight;
+  const viewportBottom = viewportTop + viewportHeight;
+  const spaceAbove = Math.max(0, rect.top - viewportTop - 12);
+  const spaceBelow = Math.max(0, viewportBottom - rect.bottom - 12);
+  const wantedHeight = Math.min(
+    list.scrollHeight,
+    viewportHeight * 0.55,
+    320,
+  );
+  const openUp = spaceBelow < wantedHeight && spaceAbove > spaceBelow;
+  const available = openUp ? spaceAbove : spaceBelow;
+
+  menu.classList.toggle("open-up", openUp);
+  list.style.setProperty(
+    "--item-menu-max-height",
+    `${Math.max(80, Math.floor(available - 8))}px`,
+  );
+}
 function closeItemMenus(except = null) {
   document.querySelectorAll(".item-menu.open").forEach((menu) => {
     if (except && menu === except) return;
     menu.classList.remove("open");
+    menu.classList.remove("open-up");
+    menu
+      .querySelector(".item-menu-list")
+      ?.style.removeProperty("--item-menu-max-height");
     const btn = menu.querySelector(".item-menu-toggle");
     if (btn) btn.setAttribute("aria-expanded", "false");
   });
@@ -1641,6 +1681,7 @@ content.addEventListener("click", (e) => {
     if (willOpen) {
       menu.classList.add("open");
       toggle.setAttribute("aria-expanded", "true");
+      positionItemMenu(menu);
     }
     updateMobileMenuState();
     return;
@@ -1874,7 +1915,18 @@ conflictModal.addEventListener("click", (e) => {
   else if (e.target === conflictModal) closeConflictModal(null);
 });
 $("conflictCancel").addEventListener("click", () => closeConflictModal(null));
+editorToolsMenuBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const willOpen = !editorToolsMenuGroup.classList.contains("open");
+  editorToolsMenuGroup.classList.toggle("open", willOpen);
+  editorToolsMenuBtn.setAttribute("aria-expanded", String(willOpen));
+});
+editorToolsMenuGroup.addEventListener("click", (e) => {
+  const action = e.target.closest("button");
+  if (action && action !== editorToolsMenuBtn) closeEditorToolsMenu();
+});
 editorModal.addEventListener("click", (e) => {
+  if (!e.target.closest("#editorToolsMenuGroup")) closeEditorToolsMenu();
   if (e.target === editorModal) closeEditor();
 });
 $("mediaClose").addEventListener("click", closeMedia);
@@ -1892,6 +1944,8 @@ window.addEventListener("keydown", (e) => {
   if (state.media) closeMedia();
   else if (state.conflictResolver) closeConflictModal(null);
   else if (state.movePicker) closeMovePicker();
+  else if (editorToolsMenuGroup.classList.contains("open"))
+    closeEditorToolsMenu();
   else if (editorModal.classList.contains("show")) closeEditor();
 });
 window.addEventListener("popstate", () => {

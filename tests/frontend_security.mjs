@@ -4,6 +4,10 @@ import { readFileSync } from "node:fs";
 const index = readFileSync(new URL("../index.php", import.meta.url), "utf8");
 const app = readFileSync(new URL("../assets/app.js", import.meta.url), "utf8");
 const css = readFileSync(new URL("../assets/app.css", import.meta.url), "utf8");
+const favicon = readFileSync(
+  new URL("../assets/favicon.svg", import.meta.url),
+  "utf8",
+);
 
 assert.ok(
   !/on(?:click|change|input|submit|load|error)\s*=/.test(index + app),
@@ -35,6 +39,17 @@ assert.ok(
   index.includes('assets/app.css?v=<?= $cssVersion ?>') &&
     index.includes('assets/app.js?v=<?= $jsVersion ?>'),
   "frontend asset URLs change after deployment so stale upload code is not reused",
+);
+assert.ok(
+  index.includes('rel="icon" type="image/svg+xml"') &&
+    index.includes('assets/favicon.svg?v=<?= $faviconVersion ?>'),
+  "the SVG favicon is linked with cache busting",
+);
+assert.ok(
+  /<rect[^>]*rx="15"/.test(favicon) &&
+    /font-family="ui-sans-serif, system-ui/.test(favicon) &&
+    />FM<\/text>/.test(favicon.replace(/\s+/g, "")),
+  "the favicon is a rounded FM mark using the manager's font stack",
 );
 assert.ok(
   index.includes('id="themeToggle"') && index.includes('id="themeToggleIcon"'),

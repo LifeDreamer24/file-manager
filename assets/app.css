@@ -3000,3 +3000,20 @@ body.light .move-list {
     margin-bottom: 260px !important;
   }
 }
+
+/* Keep the signed-in control compact on portrait mobile screens. */
+@media (max-width: 760px) and (orientation: portrait) {
+  .login-pill {
+    min-height: 44px;
+    padding: 5px 5px 5px 11px;
+  }
+
+  .login-pill .logout-icon {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+    flex: 0 0 32px;
+  }
+}

@@ -545,6 +545,9 @@ body.light .login-card {
   position: relative;
   z-index: 20;
 }
+body.item-menu-open #browserPanel {
+  z-index: 50;
+}
 
 #browserPanel > .pathbar {
   border-top-left-radius: 14px;

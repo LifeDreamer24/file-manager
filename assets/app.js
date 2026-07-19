@@ -1607,9 +1607,12 @@ function closeDropdowns(except = null) {
   if (except !== "upload") uploadDropdown.classList.remove("open");
 }
 function updateMobileMenuState() {
-  const hasOpen =
-    window.innerWidth <= 760 && !!document.querySelector(".item-menu.open");
-  document.body.classList.toggle("mobile-menu-open", hasOpen);
+  const hasOpen = !!document.querySelector(".item-menu.open");
+  document.body.classList.toggle("item-menu-open", hasOpen);
+  document.body.classList.toggle(
+    "mobile-menu-open",
+    window.innerWidth <= 760 && hasOpen,
+  );
 }
 function positionItemMenu(menu) {
   const list = menu?.querySelector(".item-menu-list");

@@ -53,5 +53,9 @@ assert.ok(
   /\[hidden\]\s*\{\s*display:\s*none\s*!important;\s*\}/.test(css),
   "the hidden attribute wins over component display styles",
 );
+assert.ok(
+  /#browserPanel\s*\{[^}]*box-shadow:\s*var\(--manager-shadow\)/s.test(css),
+  "the main file-manager panel has a subtle themed shadow",
+);
 
 console.log("Frontend security regression checks passed.");

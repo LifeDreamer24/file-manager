@@ -549,6 +549,41 @@ body.item-menu-open #browserPanel {
   z-index: 50;
 }
 
+#content {
+  transform-origin: top center;
+}
+#content.folder-loading {
+  opacity: 0.42;
+  transform: translateY(2px);
+  pointer-events: none;
+  transition:
+    opacity 90ms ease,
+    transform 90ms ease;
+}
+#content.folder-enter {
+  animation: folderContentIn 150ms ease-out both;
+}
+@keyframes folderContentIn {
+  from {
+    opacity: 0.42;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #content.folder-loading {
+    opacity: 0.7;
+    transform: none;
+    transition: none;
+  }
+  #content.folder-enter {
+    animation: none;
+  }
+}
+
 #browserPanel > .pathbar {
   border-top-left-radius: 14px;
   border-top-right-radius: 14px;

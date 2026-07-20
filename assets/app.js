@@ -22,6 +22,8 @@ const state = {
   uploadCancelled: false,
   conflictResolver: null,
   editorReturnFocus: null,
+  previewing: false,
+  previewTimer: null,
   media: null,
   mediaReturnFocus: null,
 };
@@ -40,6 +42,11 @@ const editorModal = $("editorModal"),
   editorStatus = $("editorStatus"),
   editorText = $("editorText"),
   lineNumbers = $("lineNumbers"),
+  editorBody = $("editorBody"),
+  editorPreview = $("editorPreview"),
+  editorPreviewFrame = $("editorPreviewFrame"),
+  editorPreviewLabel = $("editorPreviewLabel"),
+  previewFile = $("previewFile"),
   editorToolsMenuGroup = $("editorToolsMenuGroup"),
   editorToolsMenuBtn = $("editorToolsMenuBtn");
 const uploadOverlay = $("uploadOverlay"),
@@ -289,14 +296,15 @@ function renderRow(item) {
     click = `href="?path=${encodeURIComponent(item.path)}" data-open-action="folder"`;
   } else {
     const downloadUrl = fileDownloadUrl(item);
-    const playAction = item.media_type
+    const playable = item.media_type && browserCanPlayMedia(item);
+    const playAction = playable
       ? `<button class="action" type="button" data-item-action="play">Play</button>`
       : "";
     actions = itemMenu(
       item.name,
       `${playAction}<a class="action" href="${escapeAttr(downloadUrl)}" download="${escapeAttr(item.download_name || item.name)}">Download</a><button class="action" type="button" data-item-action="move">Move</button><button class="action" type="button" data-item-action="rename">Rename</button>${item.extractable ? `<button class="action" type="button" data-item-action="extract">Extract</button>` : ""}<button class="action" type="button" data-item-action="copy">Copy URL</button><button class="action danger" type="button" data-item-action="delete">Delete</button>`,
     );
-    click = item.media_type
+    click = playable
       ? `href="#" data-open-action="media" class="name file-name"`
       : item.editable
         ? `href="#" data-open-action="edit" class="name file-name"`
@@ -1195,6 +1203,10 @@ async function editFile(path) {
     !confirm("You have unsaved editor changes. Open another file anyway?")
   )
     return;
+  setPreviewMode(false);
+  state.editing = null;
+  state.dirty = false;
+  setEditorControls(false);
   openEditorShell(true);
   editorName.textContent = path.split("/").pop();
   editorPath.textContent = path;
@@ -1225,6 +1237,7 @@ async function editFile(path) {
     });
   } catch (e) {
     state.editing = null;
+    setPreviewMode(false);
     editorText.value = "";
     editorText.disabled = true;
     setEditorControls(false);
@@ -1234,6 +1247,13 @@ async function editFile(path) {
 
 function mediaItem(path) {
   return state.entries.find((item) => item.path === path) || null;
+}
+function browserCanPlayMedia(item) {
+  if (!item || !["audio", "video"].includes(item.media_type)) return false;
+  const player = item.media_type === "audio" ? audioPlayer : videoPlayer;
+  const mime = String(item.media_mime || "").trim();
+  if (!mime) return true;
+  return player.canPlayType(mime) !== "";
 }
 function resetMediaElement(player) {
   player.pause();
@@ -1245,6 +1265,10 @@ function openMedia(path, trigger = null) {
   const item = mediaItem(path);
   if (!item || !["audio", "video"].includes(item.media_type)) {
     toast("This file cannot be played in the browser.");
+    return;
+  }
+  if (!browserCanPlayMedia(item)) {
+    toast(`This browser cannot preview .${extension(item.name)} media. Download it instead.`);
     return;
   }
 
@@ -1312,6 +1336,387 @@ function handleMediaError(event) {
   mediaMessage.classList.add("error");
   mediaMessage.hidden = false;
 }
+
+function previewKind() {
+  if (!state.editing) return "";
+  const ext = extension(state.editing.name || state.editing.path);
+  if (ext === "md") return "markdown";
+  if (["html", "htm"].includes(ext)) return "html";
+  if (ext === "svg") return "svg";
+  return "";
+}
+function markdownInline(text) {
+  const tokens = [];
+  const hold = (html) =>
+    "\u0000" + String(tokens.push(html) - 1) + "\u0000";
+  let value = String(text || "");
+
+  value = value.replace(/\x60([^\x60\n]+)\x60/g, (_, code) =>
+    hold("<code>" + escapeHtml(code) + "</code>"),
+  );
+  value = value.replace(/!\[([^\]]*)\]\([^)]+\)/g, (_, alt) =>
+    hold(
+      '<span class="image-alt" title="Images are not loaded in the sandboxed preview">🖼️ ' +
+        escapeHtml(alt || "Image") +
+        "</span>",
+    ),
+  );
+  value = value.replace(/\[([^\]]+)\]\([^)]+\)/g, (_, label) =>
+    hold('<span class="md-link">' + escapeHtml(label) + "</span>"),
+  );
+  value = escapeHtml(value)
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/__([^_]+)__/g, "<strong>$1</strong>")
+    .replace(/~~([^~]+)~~/g, "<del>$1</del>")
+    .replace(/(^|[\s(])\*([^*\n]+)\*/g, "$1<em>$2</em>")
+    .replace(/(^|[\s(])_([^_\n]+)_/g, "$1<em>$2</em>");
+
+  return value.replace(/\u0000(\d+)\u0000/g, (_, index) =>
+    tokens[Number(index)] || "",
+  );
+}
+function markdownListItem(text) {
+  const task = String(text).match(/^\[([ xX])\]\s+(.*)$/);
+  if (!task) return "<li>" + markdownInline(text) + "</li>";
+  const checked = task[1].toLowerCase() === "x" ? " checked" : "";
+  return (
+    '<li class="task-item"><input type="checkbox" disabled' +
+    checked +
+    "> <span>" +
+    markdownInline(task[2]) +
+    "</span></li>"
+  );
+}
+function splitMarkdownRow(line) {
+  return String(line)
+    .trim()
+    .replace(/^\||\|$/g, "")
+    .split("|")
+    .map((cell) => cell.trim());
+}
+function markdownToHtml(markdown) {
+  const lines = String(markdown || "").replace(/\r\n?/g, "\n").split("\n");
+  const html = [];
+  let paragraph = [];
+  let listType = "";
+  let inCode = false;
+  let codeLanguage = "";
+  let codeLines = [];
+
+  const flushParagraph = () => {
+    if (!paragraph.length) return;
+    html.push("<p>" + markdownInline(paragraph.join(" ")) + "</p>");
+    paragraph = [];
+  };
+  const closeList = () => {
+    if (!listType) return;
+    html.push("</" + listType + ">");
+    listType = "";
+  };
+  const flushCode = () => {
+    const language = codeLanguage
+      ? '<span class="code-language">' + escapeHtml(codeLanguage) + "</span>"
+      : "";
+    html.push(
+      "<pre>" +
+        language +
+        "<code>" +
+        escapeHtml(codeLines.join("\n")) +
+        "</code></pre>",
+    );
+    codeLanguage = "";
+    codeLines = [];
+  };
+
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+
+    if (inCode) {
+      if (/^ {0,3}\x60{3}/.test(line)) {
+        inCode = false;
+        flushCode();
+      } else {
+        codeLines.push(line);
+      }
+      continue;
+    }
+
+    const fence = line.match(/^ {0,3}\x60{3}\s*([a-z0-9_-]*)/i);
+    if (fence) {
+      flushParagraph();
+      closeList();
+      inCode = true;
+      codeLanguage = fence[1] || "";
+      continue;
+    }
+
+    if (!line.trim()) {
+      flushParagraph();
+      closeList();
+      continue;
+    }
+
+    if (
+      line.includes("|") &&
+      index + 1 < lines.length &&
+      /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(
+        lines[index + 1],
+      )
+    ) {
+      flushParagraph();
+      closeList();
+      const headings = splitMarkdownRow(line);
+      index += 2;
+      const rows = [];
+      while (
+        index < lines.length &&
+        lines[index].trim() &&
+        lines[index].includes("|")
+      ) {
+        rows.push(splitMarkdownRow(lines[index]));
+        index++;
+      }
+      index--;
+      html.push(
+        "<table><thead><tr>" +
+          headings
+            .map((cell) => "<th>" + markdownInline(cell) + "</th>")
+            .join("") +
+          "</tr></thead><tbody>" +
+          rows
+            .map(
+              (row) =>
+                "<tr>" +
+                headings
+                  .map(
+                    (_, cellIndex) =>
+                      "<td>" +
+                      markdownInline(row[cellIndex] || "") +
+                      "</td>",
+                  )
+                  .join("") +
+                "</tr>",
+            )
+            .join("") +
+          "</tbody></table>",
+      );
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,6})\s+(.+)$/);
+    if (heading) {
+      flushParagraph();
+      closeList();
+      const level = heading[1].length;
+      html.push(
+        "<h" +
+          level +
+          ">" +
+          markdownInline(heading[2]) +
+          "</h" +
+          level +
+          ">",
+      );
+      continue;
+    }
+
+    if (/^\s{0,3}([-*_])(?:\s*\1){2,}\s*$/.test(line)) {
+      flushParagraph();
+      closeList();
+      html.push("<hr>");
+      continue;
+    }
+
+    const quote = line.match(/^\s{0,3}>\s?(.*)$/);
+    if (quote) {
+      flushParagraph();
+      closeList();
+      html.push("<blockquote>" + markdownInline(quote[1]) + "</blockquote>");
+      continue;
+    }
+
+    const unordered = line.match(/^\s*[-+*]\s+(.+)$/);
+    const ordered = line.match(/^\s*\d+[.)]\s+(.+)$/);
+    if (unordered || ordered) {
+      flushParagraph();
+      const wanted = ordered ? "ol" : "ul";
+      if (listType !== wanted) {
+        closeList();
+        listType = wanted;
+        html.push("<" + wanted + ">");
+      }
+      html.push(markdownListItem((ordered || unordered)[1]));
+      continue;
+    }
+
+    closeList();
+    paragraph.push(line.trim());
+  }
+
+  if (inCode) flushCode();
+  flushParagraph();
+  closeList();
+  return html.join("\n");
+}
+function previewSecurityMeta() {
+  return (
+    '<meta http-equiv="Content-Security-Policy" content="' +
+    "default-src 'none'; img-src data: blob:; media-src data: blob:; " +
+    "style-src 'unsafe-inline'; font-src data:; form-action 'none'; base-uri 'none'" +
+    '"><meta name="referrer" content="no-referrer">'
+  );
+}
+function markdownPreviewStyles() {
+  const light = document.body.classList.contains("light");
+  const bg = light ? "#ffffff" : "#11161d";
+  const surface = light ? "#f4f6fa" : "#171a21";
+  const text = light ? "#111827" : "#edf2f7";
+  const muted = light ? "#667085" : "#9aa8ba";
+  const line = light ? "#d7dee8" : "#303847";
+  const code = light ? "#eef2f7" : "#0f1115";
+  return (
+    "html{color-scheme:" +
+    (light ? "light" : "dark") +
+    "}*{box-sizing:border-box}body{margin:0;padding:32px;background:" +
+    bg +
+    ";color:" +
+    text +
+    ";font:16px/1.65 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}" +
+    ".markdown{width:min(860px,100%);margin:0 auto}.markdown>:first-child{margin-top:0}" +
+    ".markdown>:last-child{margin-bottom:0}h1,h2,h3,h4,h5,h6{line-height:1.25;margin:1.5em 0 .65em;letter-spacing:-.02em}" +
+    "h1{font-size:2.15rem;border-bottom:1px solid " +
+    line +
+    ";padding-bottom:.35em}h2{font-size:1.55rem;border-bottom:1px solid " +
+    line +
+    ";padding-bottom:.3em}h3{font-size:1.25rem}p{margin:.8em 0}" +
+    "a,.md-link{color:#159b6b;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}" +
+    "strong{font-weight:750}del{color:" +
+    muted +
+    "}code{padding:.16em .4em;border:1px solid " +
+    line +
+    ";border-radius:6px;background:" +
+    code +
+    ";font:85% ui-monospace,SFMono-Regular,Consolas,monospace}" +
+    "pre{position:relative;overflow:auto;margin:1em 0;padding:16px;border:1px solid " +
+    line +
+    ";border-radius:12px;background:" +
+    code +
+    "}pre code{padding:0;border:0;background:transparent;font-size:.9rem}" +
+    ".code-language{float:right;margin:-7px -5px 8px 12px;color:" +
+    muted +
+    ";font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}" +
+    "blockquote{margin:1em 0;padding:.35em 1em;border-left:4px solid #42d392;background:" +
+    surface +
+    ";color:" +
+    muted +
+    "}ul,ol{padding-left:1.6em}.task-item{display:flex;align-items:flex-start;gap:.5em;list-style:none;margin-left:-1.35em}" +
+    ".task-item input{margin-top:.42em;accent-color:#42d392}hr{height:1px;margin:1.75em 0;border:0;background:" +
+    line +
+    "}table{width:100%;margin:1em 0;border-collapse:collapse;display:block;overflow:auto}" +
+    "th,td{padding:.55em .75em;border:1px solid " +
+    line +
+    ";text-align:left}th{background:" +
+    surface +
+    "}tr:nth-child(even) td{background:" +
+    surface +
+    "}.image-alt{display:inline-flex;padding:.2em .55em;border:1px dashed " +
+    line +
+    ";border-radius:7px;color:" +
+    muted +
+    "}" +
+    "@media(max-width:600px){body{padding:20px 16px;font-size:15px}h1{font-size:1.75rem}h2{font-size:1.4rem}}"
+  );
+}
+function sandboxHtmlDocument(source) {
+  const guard = previewSecurityMeta();
+  let html = String(source || "")
+    .replace(/<meta\b[^>]*http-equiv\s*=\s*["']?refresh["']?[^>]*>/gi, "")
+    .replace(/<base\b[^>]*>/gi, "");
+  if (/<head\b[^>]*>/i.test(html)) {
+    return html.replace(/<head\b[^>]*>/i, (head) => head + guard);
+  }
+  if (/<html\b[^>]*>/i.test(html)) {
+    return html.replace(
+      /<html\b[^>]*>/i,
+      (root) => root + "<head>" + guard + "</head>",
+    );
+  }
+  return (
+    "<!doctype html><html><head>" +
+    guard +
+    '<style>html{color-scheme:light dark}body{margin:24px;font-family:system-ui,sans-serif}</style>' +
+    "</head><body>" +
+    html +
+    "</body></html>"
+  );
+}
+function buildPreviewDocument(kind, source) {
+  if (kind === "html") return sandboxHtmlDocument(source);
+  if (kind === "svg") {
+    const light = document.body.classList.contains("light");
+    return (
+      "<!doctype html><html><head>" +
+      previewSecurityMeta() +
+      "<style>html{color-scheme:" +
+      (light ? "light" : "dark") +
+      "}*{box-sizing:border-box}body{min-height:100vh;margin:0;padding:28px;display:grid;place-items:center;background:" +
+      (light ? "#ffffff" : "#11161d") +
+      "}svg{display:block;max-width:100%;max-height:calc(100vh - 56px);height:auto}</style>" +
+      "</head><body>" +
+      String(source || "") +
+      "</body></html>"
+    );
+  }
+  return (
+    "<!doctype html><html><head>" +
+    previewSecurityMeta() +
+    "<style>" +
+    markdownPreviewStyles() +
+    "</style></head><body><main class=\"markdown\">" +
+    markdownToHtml(source) +
+    "</main></body></html>"
+  );
+}
+function renderEditorPreview() {
+  const kind = previewKind();
+  if (!state.previewing || !kind) return;
+  editorPreviewLabel.textContent =
+    { markdown: "Markdown preview", html: "HTML preview", svg: "SVG preview" }[
+      kind
+    ] || "Rendered preview";
+  editorPreviewFrame.srcdoc = buildPreviewDocument(kind, editorText.value);
+}
+function scheduleEditorPreview() {
+  if (!state.previewing) return;
+  clearTimeout(state.previewTimer);
+  state.previewTimer = window.setTimeout(renderEditorPreview, 140);
+}
+function setPreviewMode(show, focusEditor = false) {
+  const canPreview = !!previewKind();
+  state.previewing = !!show && canPreview;
+  clearTimeout(state.previewTimer);
+  state.previewTimer = null;
+  editorBody.hidden = state.previewing;
+  editorPreview.hidden = !state.previewing;
+  previewFile.textContent = state.previewing ? "Edit" : "Preview";
+  previewFile.setAttribute("aria-pressed", String(state.previewing));
+  if (state.previewing) {
+    renderEditorPreview();
+  } else {
+    editorPreviewFrame.srcdoc = "";
+    if (focusEditor && state.editing) {
+      requestAnimationFrame(() => editorText.focus());
+    }
+  }
+}
+function togglePreview() {
+  if (!previewKind()) {
+    toast("Preview is available for Markdown, HTML, and SVG files.");
+    return;
+  }
+  setPreviewMode(!state.previewing, state.previewing);
+}
+
 async function saveFile() {
   if (!state.editing) return;
   try {
@@ -1357,6 +1762,7 @@ function closeEditor(force = false) {
   )
     return false;
   const returnFocus = state.editorReturnFocus;
+  setPreviewMode(false);
   state.editing = null;
   state.originalText = "";
   state.dirty = false;
@@ -1382,6 +1788,7 @@ function setEditorControls(on) {
   $("saveFile").disabled = !on || !state.dirty;
   $("downloadEditor").disabled = !on;
   $("copyFileUrl").disabled = !state.editing;
+  previewFile.disabled = !on || !previewKind();
   $("formatFile").disabled = !on;
   $("trimLines").disabled = !on;
   $("tabsToSpaces").disabled = !on;
@@ -1395,6 +1802,7 @@ function markDirty() {
   state.dirty = !!state.editing && editorText.value !== state.originalText;
   setEditorStatus(state.dirty ? "Unsaved edits" : "Editing", state.dirty);
   setEditorControls(!!state.editing);
+  scheduleEditorPreview();
 }
 function downloadEditor() {
   if (!state.editing) return;
@@ -1530,6 +1938,7 @@ function applyTheme() {
       `Theme: ${current.name}. Switch to ${current.next}.`,
     );
   }
+  scheduleEditorPreview();
 }
 function toggleTheme() {
   state.themePreference =
@@ -1874,6 +2283,7 @@ window.addEventListener("drop", async (e) => {
 $("refreshIndex").addEventListener("click", () => loadFolder(true));
 $("saveFile").addEventListener("click", saveFile);
 $("downloadEditor").addEventListener("click", downloadEditor);
+previewFile.addEventListener("click", togglePreview);
 $("copyFileUrl").addEventListener(
   "click",
   () => state.editing && copyText(filePublicUrl(state.editing), "Copied URL"),

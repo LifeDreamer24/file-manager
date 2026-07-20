@@ -34,6 +34,8 @@ The configured per-file limit is 512 MiB by default. Your PHP and hosting limits
 - Protect unsaved work when closing the modal, pressing Escape, clicking the backdrop, refreshing, or leaving the page.
 - Save directly to the server with atomic writes and edit-conflict detection.
 - View synchronized line numbers and toggle line wrapping.
+- Toggle a live rendered preview for Markdown, HTML, and SVG files while editing.
+- Render previews inside a sandbox that blocks scripts, forms, and external resources.
 - Download the edited buffer or copy the file's public URL.
 - Auto-format JSON, HTML/XML, CSS, and JavaScript, with whitespace cleanup for configuration and plain-text formats.
 - Trim trailing whitespace and convert tabs to spaces.
@@ -47,7 +49,7 @@ Editable file types and the default 2 MiB editor limit are controlled in `config
 - Start playback at 25% volume.
 - Download the currently opened media file from the player.
 
-Recognized formats are MP3, WAV, OGG/OGA, Opus, M4A, AAC, FLAC, MP4/M4V, WebM, OGV, and MOV. Actual playback still depends on codec support in the browser.
+Recognized formats are MP3, WAV, OGG/OGA, Opus, M4A, AAC, FLAC, MP4/M4V, WebM, OGV, and MOV. The player checks the browser's reported MIME support first, so unsupported formats download instead of opening with only a partially decoded track. Actual playback still depends on the codecs available in the browser.
 
 ### Interface
 

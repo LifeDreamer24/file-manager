@@ -227,6 +227,7 @@ $jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
         <button id="saveFile" type="button" disabled>Save</button>
         <button id="downloadEditor" type="button" disabled>Download</button>
         <button id="copyFileUrl" type="button" disabled>Copy URL</button>
+        <button id="previewFile" type="button" aria-pressed="false" disabled>Preview</button>
 
         <span class="spacer"></span>
 
@@ -250,9 +251,18 @@ $jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
         </div>
       </div>
 
-      <div class="editor-body">
-        <div id="lineNumbers" class="lines">1</div>
-        <textarea id="editorText" spellcheck="false" disabled placeholder="File content will appear here..."></textarea>
+      <div class="editor-workspace">
+        <div id="editorBody" class="editor-body">
+          <div id="lineNumbers" class="lines">1</div>
+          <textarea id="editorText" spellcheck="false" disabled placeholder="File content will appear here..."></textarea>
+        </div>
+        <div id="editorPreview" class="editor-preview" hidden>
+          <div class="editor-preview-head">
+            <strong id="editorPreviewLabel">Rendered preview</strong>
+            <span>Sandboxed preview</span>
+          </div>
+          <iframe id="editorPreviewFrame" title="Rendered file preview" sandbox referrerpolicy="no-referrer"></iframe>
+        </div>
       </div>
 
       <div class="editor-note">

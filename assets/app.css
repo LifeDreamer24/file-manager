@@ -2403,26 +2403,26 @@ body.light .move-list {
     text-align: center;
     min-height: 44px;
   }
-  table,
-  thead,
-  tbody,
-  tr,
-  td {
+  #content .file-table,
+  #content .file-table thead,
+  #content .file-table tbody,
+  #content .file-table tr,
+  #content .file-table td {
     display: block;
   }
-  table {
+  #content .file-table {
     border-collapse: separate;
     border-spacing: 0;
   }
-  thead {
+  #content .file-table thead {
     display: none;
   }
-  tbody {
+  #content .file-table tbody {
     display: grid;
     gap: 8px;
     padding: 10px;
   }
-  tbody tr {
+  #content .file-table tbody tr {
     display: grid;
     grid-template-columns: 32px minmax(0, 1fr) 42px;
     align-items: center;
@@ -2434,15 +2434,15 @@ body.light .move-list {
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
     overflow: visible;
   }
-  body.light tbody tr {
+  body.light #content .file-table tbody tr {
     border-color: rgba(215, 222, 232, 0.95);
     background: rgba(255, 255, 255, 0.72);
   }
-  tbody tr.selected {
+  #content .file-table tbody tr.selected {
     background: rgba(66, 211, 146, 0.14);
   }
-  th,
-  td {
+  #content .file-table th,
+  #content .file-table td {
     padding: 0;
     border-bottom: 0 !important;
     text-align: left;
@@ -2475,15 +2475,15 @@ body.light .move-list {
     top: 9px;
     width: 12px;
   }
-  td:nth-child(2),
-  td.name-cell {
+  #content .file-table td:nth-child(2),
+  #content .file-table td.name-cell {
     grid-column: 2;
     grid-row: 1;
     min-width: 0;
     overflow: hidden !important;
   }
-  td:nth-child(5),
-  td.actions-cell {
+  #content .file-table td:nth-child(5),
+  #content .file-table td.actions-cell {
     grid-column: 3;
     grid-row: 1;
     margin-top: 0;
@@ -2555,7 +2555,7 @@ body.light .move-list {
     line-height: 1.15;
   }
   @media (max-width: 430px) {
-    tbody tr {
+    #content .file-table tbody tr {
       grid-template-columns: 28px minmax(0, 1fr) 38px;
       gap: 0 7px;
       padding: 8px 9px;
@@ -2811,7 +2811,7 @@ body.light .move-list {
   .action {
     font-size: 0.95rem;
   }
-  tbody tr {
+  #content .file-table tbody tr {
     grid-template-columns: 40px minmax(0, 1fr);
     padding: 10px;
   }
@@ -2846,20 +2846,20 @@ body.light .move-list {
   .action:hover {
     transform: none;
   }
-  tbody tr:hover {
+  #content .file-table tbody tr:hover {
     background: rgba(255, 255, 255, 0.026);
   }
-  body.light tbody tr:hover {
+  body.light #content .file-table tbody tr:hover {
     background: rgba(255, 255, 255, 0.72);
   }
-  tbody tr.selected:hover {
+  #content .file-table tbody tr.selected:hover {
     background: rgba(66, 211, 146, 0.14);
   }
 }
 
 /* Strong compact mobile file rows: checkbox | file name | actions */
 @media (max-width: 760px) {
-  tbody tr {
+  #content .file-table tbody tr {
     display: grid;
     grid-template-columns: 30px minmax(0, 1fr) 40px;
     align-items: center;

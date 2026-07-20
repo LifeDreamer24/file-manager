@@ -1,0 +1,38 @@
+/* Keep the editor and preview constrained to the visible mobile viewport. */
+@media (max-width: 760px) {
+  .editor-modal,
+  .editor-modal .editor-shell,
+  .editor-shell .editor-workspace,
+  .editor-shell .editor-body,
+  .editor-shell .editor-preview,
+  .editor-shell .editor-preview-content {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .editor-modal {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .editor-modal .editor-shell {
+    width: calc(100% - 20px);
+    overflow: hidden;
+  }
+
+  .editor-shell .editor-body {
+    grid-template-columns: 42px minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .editor-shell textarea {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .editor-shell .editor-preview-content {
+    width: 100%;
+    overflow-x: auto;
+  }
+}

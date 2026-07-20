@@ -261,7 +261,7 @@ $jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
             <strong id="editorPreviewLabel">Rendered preview</strong>
             <span>Sandboxed preview</span>
           </div>
-          <iframe id="editorPreviewFrame" title="Rendered file preview" sandbox referrerpolicy="no-referrer"></iframe>
+          <div id="editorPreviewContent" class="editor-preview-content" role="document" aria-label="Rendered file preview"></div>
         </div>
       </div>
 

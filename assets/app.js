@@ -44,7 +44,7 @@ const editorModal = $("editorModal"),
   lineNumbers = $("lineNumbers"),
   editorBody = $("editorBody"),
   editorPreview = $("editorPreview"),
-  editorPreviewFrame = $("editorPreviewFrame"),
+  editorPreviewContent = $("editorPreviewContent"),
   editorPreviewLabel = $("editorPreviewLabel"),
   previewFile = $("previewFile"),
   editorToolsMenuGroup = $("editorToolsMenuGroup"),
@@ -1558,124 +1558,79 @@ function markdownToHtml(markdown) {
   closeList();
   return html.join("\n");
 }
-function previewSecurityMeta() {
-  return (
-    '<meta http-equiv="Content-Security-Policy" content="' +
-    "default-src 'none'; img-src data: blob:; media-src data: blob:; " +
-    "style-src 'unsafe-inline'; font-src data:; form-action 'none'; base-uri 'none'" +
-    '"><meta name="referrer" content="no-referrer">'
-  );
-}
-function markdownPreviewStyles() {
-  const light = document.body.classList.contains("light");
-  const bg = light ? "#ffffff" : "#11161d";
-  const surface = light ? "#f4f6fa" : "#171a21";
-  const text = light ? "#111827" : "#edf2f7";
-  const muted = light ? "#667085" : "#9aa8ba";
-  const line = light ? "#d7dee8" : "#303847";
-  const code = light ? "#eef2f7" : "#0f1115";
-  return (
-    "html{color-scheme:" +
-    (light ? "light" : "dark") +
-    "}*{box-sizing:border-box}body{margin:0;padding:32px;background:" +
-    bg +
-    ";color:" +
-    text +
-    ";font:16px/1.65 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}" +
-    ".markdown{width:min(860px,100%);margin:0 auto}.markdown>:first-child{margin-top:0}" +
-    ".markdown>:last-child{margin-bottom:0}h1,h2,h3,h4,h5,h6{line-height:1.25;margin:1.5em 0 .65em;letter-spacing:-.02em}" +
-    "h1{font-size:2.15rem;border-bottom:1px solid " +
-    line +
-    ";padding-bottom:.35em}h2{font-size:1.55rem;border-bottom:1px solid " +
-    line +
-    ";padding-bottom:.3em}h3{font-size:1.25rem}p{margin:.8em 0}" +
-    "a,.md-link{color:#159b6b;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}" +
-    "strong{font-weight:750}del{color:" +
-    muted +
-    "}code{padding:.16em .4em;border:1px solid " +
-    line +
-    ";border-radius:6px;background:" +
-    code +
-    ";font:85% ui-monospace,SFMono-Regular,Consolas,monospace}" +
-    "pre{position:relative;overflow:auto;margin:1em 0;padding:16px;border:1px solid " +
-    line +
-    ";border-radius:12px;background:" +
-    code +
-    "}pre code{padding:0;border:0;background:transparent;font-size:.9rem}" +
-    ".code-language{float:right;margin:-7px -5px 8px 12px;color:" +
-    muted +
-    ";font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}" +
-    "blockquote{margin:1em 0;padding:.35em 1em;border-left:4px solid #42d392;background:" +
-    surface +
-    ";color:" +
-    muted +
-    "}ul,ol{padding-left:1.6em}.task-item{display:flex;align-items:flex-start;gap:.5em;list-style:none;margin-left:-1.35em}" +
-    ".task-item input{margin-top:.42em;accent-color:#42d392}hr{height:1px;margin:1.75em 0;border:0;background:" +
-    line +
-    "}table{width:100%;margin:1em 0;border-collapse:collapse;display:block;overflow:auto}" +
-    "th,td{padding:.55em .75em;border:1px solid " +
-    line +
-    ";text-align:left}th{background:" +
-    surface +
-    "}tr:nth-child(even) td{background:" +
-    surface +
-    "}.image-alt{display:inline-flex;padding:.2em .55em;border:1px dashed " +
-    line +
-    ";border-radius:7px;color:" +
-    muted +
-    "}" +
-    "@media(max-width:600px){body{padding:20px 16px;font-size:15px}h1{font-size:1.75rem}h2{font-size:1.4rem}}"
-  );
-}
-function sandboxHtmlDocument(source) {
-  const guard = previewSecurityMeta();
-  let html = String(source || "")
-    .replace(/<meta\b[^>]*http-equiv\s*=\s*["']?refresh["']?[^>]*>/gi, "")
-    .replace(/<base\b[^>]*>/gi, "");
-  if (/<head\b[^>]*>/i.test(html)) {
-    return html.replace(/<head\b[^>]*>/i, (head) => head + guard);
-  }
-  if (/<html\b[^>]*>/i.test(html)) {
-    return html.replace(
-      /<html\b[^>]*>/i,
-      (root) => root + "<head>" + guard + "</head>",
-    );
-  }
-  return (
-    "<!doctype html><html><head>" +
-    guard +
-    '<style>html{color-scheme:light dark}body{margin:24px;font-family:system-ui,sans-serif}</style>' +
-    "</head><body>" +
-    html +
-    "</body></html>"
-  );
-}
-function buildPreviewDocument(kind, source) {
-  if (kind === "html") return sandboxHtmlDocument(source);
-  if (kind === "svg") {
-    const light = document.body.classList.contains("light");
-    return (
-      "<!doctype html><html><head>" +
-      previewSecurityMeta() +
-      "<style>html{color-scheme:" +
-      (light ? "light" : "dark") +
-      "}*{box-sizing:border-box}body{min-height:100vh;margin:0;padding:28px;display:grid;place-items:center;background:" +
-      (light ? "#ffffff" : "#11161d") +
-      "}svg{display:block;max-width:100%;max-height:calc(100vh - 56px);height:auto}</style>" +
-      "</head><body>" +
-      String(source || "") +
-      "</body></html>"
-    );
-  }
-  return (
-    "<!doctype html><html><head>" +
-    previewSecurityMeta() +
-    "<style>" +
-    markdownPreviewStyles() +
-    "</style></head><body><main class=\"markdown\">" +
-    markdownToHtml(source) +
-    "</main></body></html>"
-  );
+function sanitizePreviewMarkup(source, kind) {
+  const parser = new DOMParser();
+  const wrapped = kind === "svg" ? "<body>" + String(source || "") + "</body>" : String(source || "");
+  const previewDocument = parser.parseFromString(wrapped, "text/html");
+  const root = previewDocument.body;
+  const blocked = [
+    "script",
+    "style",
+    "link",
+    "meta",
+    "base",
+    "iframe",
+    "frame",
+    "object",
+    "embed",
+    "form",
+    "input",
+    "button",
+    "textarea",
+    "select",
+    "option",
+    "video",
+    "audio",
+    "source",
+    "track",
+    "canvas",
+    "template",
+    "noscript",
+    "foreignobject",
+  ];
+  root.querySelectorAll(blocked.join(",")).forEach((element) => element.remove());
+
+  const blockedAttributes = new Set([
+    "action",
+    "autofocus",
+    "class",
+    "contenteditable",
+    "download",
+    "formaction",
+    "href",
+    "id",
+    "ping",
+    "poster",
+    "srcdoc",
+    "srcset",
+    "style",
+    "tabindex",
+    "target",
+    "xlink:href",
+  ]);
+  root.querySelectorAll("*").forEach((element) => {
+    for (const attribute of [...element.attributes]) {
+      const name = attribute.name.toLowerCase();
+      if (
+        name.startsWith("on") ||
+        name.startsWith("data-") ||
+        blockedAttributes.has(name)
+      ) {
+        element.removeAttribute(attribute.name);
+        continue;
+      }
+      if (name === "src") {
+        const safeImage = /^data:image\/(?:png|jpeg|gif|webp);base64,/i.test(
+          attribute.value.trim(),
+        );
+        if (!safeImage) element.removeAttribute(attribute.name);
+      }
+    }
+    if (element.tagName.toLowerCase() === "a") {
+      element.className = "preview-link";
+    }
+  });
+  return root.innerHTML;
 }
 function renderEditorPreview() {
   const kind = previewKind();
@@ -1684,7 +1639,14 @@ function renderEditorPreview() {
     { markdown: "Markdown preview", html: "HTML preview", svg: "SVG preview" }[
       kind
     ] || "Rendered preview";
-  editorPreviewFrame.srcdoc = buildPreviewDocument(kind, editorText.value);
+  const rendered =
+    kind === "markdown"
+      ? markdownToHtml(editorText.value)
+      : sanitizePreviewMarkup(editorText.value, kind);
+  editorPreviewContent.className =
+    "editor-preview-content preview-" + kind;
+  editorPreviewContent.innerHTML =
+    rendered || '<p class="preview-empty">Nothing to preview yet.</p>';
 }
 function scheduleEditorPreview() {
   if (!state.previewing) return;
@@ -1703,7 +1665,8 @@ function setPreviewMode(show, focusEditor = false) {
   if (state.previewing) {
     renderEditorPreview();
   } else {
-    editorPreviewFrame.srcdoc = "";
+    editorPreviewContent.className = "editor-preview-content";
+    editorPreviewContent.replaceChildren();
     if (focusEditor && state.editing) {
       requestAnimationFrame(() => editorText.focus());
     }

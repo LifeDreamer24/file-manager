@@ -469,7 +469,7 @@ function media_mime_type(string $path): ?string {
         'flac' => 'audio/flac',
         'mp4', 'm4v' => 'video/mp4',
         'webm' => 'video/webm',
-        'ogv' => 'video/ogg',
+        'ogv' => 'video/ogg; codecs="theora, vorbis"',
         'mov' => 'video/quicktime',
         default => null,
     };
@@ -968,6 +968,7 @@ if ($action === 'list') {
                 'editable' => is_editable($config, $entryRel, $size),
                 'extractable' => !empty($config['allow_zip_extract']) && $ext === 'zip',
                 'media_type' => $mediaKind,
+                'media_mime' => $mediaKind === null ? null : media_mime_type($name),
                 'stream_url' => $mediaKind === null ? null : 'api.php?action=stream&path=' . rawurlencode($entryRel),
                 'public_url' => public_url($config, $entryRel),
                 'download_url' => 'api.php?action=download&path=' . rawurlencode($entryRel),

@@ -1467,12 +1467,167 @@ textarea.editor-word-wrap {
 body.light .editor-preview-head {
   background: rgba(17, 24, 39, 0.025);
 }
-.editor-preview iframe {
+.editor-preview-content {
   width: 100%;
   height: 100%;
   min-height: 0;
-  border: 0;
+  overflow: auto;
+  padding: 32px;
   background: var(--panel3);
+  color: var(--text);
+  font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  overflow-wrap: anywhere;
+}
+.editor-preview-content > :first-child {
+  margin-top: 0;
+}
+.editor-preview-content > :last-child {
+  margin-bottom: 0;
+}
+.editor-preview-content h1,
+.editor-preview-content h2,
+.editor-preview-content h3,
+.editor-preview-content h4,
+.editor-preview-content h5,
+.editor-preview-content h6 {
+  margin: 1.5em 0 0.65em;
+  color: var(--text);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+.editor-preview-content h1 {
+  padding-bottom: 0.35em;
+  border-bottom: 1px solid var(--line);
+  font-size: 2.15rem;
+}
+.editor-preview-content h2 {
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--line);
+  font-size: 1.55rem;
+}
+.editor-preview-content h3 {
+  font-size: 1.25rem;
+}
+.editor-preview-content p {
+  margin: 0.8em 0;
+}
+.editor-preview-content .md-link,
+.editor-preview-content .preview-link {
+  color: var(--name-hover);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.editor-preview-content code {
+  padding: 0.16em 0.4em;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: 85% var(--mono);
+}
+.editor-preview-content pre {
+  position: relative;
+  overflow: auto;
+  margin: 1em 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+}
+.editor-preview-content pre code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 0.9rem;
+}
+.editor-preview-content .code-language {
+  float: right;
+  margin: -7px -5px 8px 12px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.editor-preview-content blockquote {
+  margin: 1em 0;
+  padding: 0.35em 1em;
+  border-left: 4px solid var(--accent);
+  background: var(--panel2);
+  color: var(--muted);
+}
+.editor-preview-content ul,
+.editor-preview-content ol {
+  padding-left: 1.6em;
+}
+.editor-preview-content .task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+  margin-left: -1.35em;
+  list-style: none;
+}
+.editor-preview-content .task-item input {
+  margin-top: 0.42em;
+  pointer-events: none;
+}
+.editor-preview-content hr {
+  height: 1px;
+  margin: 1.75em 0;
+  border: 0;
+  background: var(--line);
+}
+.editor-preview-content table {
+  display: block;
+  width: 100%;
+  margin: 1em 0;
+  overflow: auto;
+  border-collapse: collapse;
+}
+.editor-preview-content th,
+.editor-preview-content td {
+  width: auto;
+  padding: 0.55em 0.75em;
+  overflow: visible;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.editor-preview-content th {
+  background: var(--panel2);
+  color: var(--text);
+  font-size: inherit;
+}
+.editor-preview-content tr:nth-child(even) td {
+  background: var(--panel2);
+}
+.editor-preview-content .image-alt {
+  display: inline-flex;
+  padding: 0.2em 0.55em;
+  border: 1px dashed var(--line);
+  border-radius: 7px;
+  color: var(--muted);
+}
+.editor-preview-content .preview-empty {
+  display: grid;
+  min-height: 100%;
+  place-items: center;
+  color: var(--muted);
+  text-align: center;
+}
+.editor-preview-content.preview-svg {
+  display: grid;
+  place-items: center;
+}
+.editor-preview-content.preview-svg svg {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  height: auto;
 }
 .editor-note {
   padding: 10px 14px;
@@ -2517,6 +2672,16 @@ body.light .move-list {
   }
   .editor-preview-head {
     padding: 8px 10px;
+  }
+  .editor-preview-content {
+    padding: 20px 16px;
+    font-size: 15px;
+  }
+  .editor-preview-content h1 {
+    font-size: 1.75rem;
+  }
+  .editor-preview-content h2 {
+    font-size: 1.4rem;
   }
   .toast {
     left: 10px;

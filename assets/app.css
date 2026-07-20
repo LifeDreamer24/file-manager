@@ -1106,6 +1106,18 @@ body.light .item-menu-list button {
   width: 100%;
   padding: 24px;
 }
+.login-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.login-card-head > div {
+  min-width: 0;
+}
+.login-card-head .theme-toggle {
+  margin-top: -2px;
+}
 .login-card h1 {
   font-size: 2rem;
 }

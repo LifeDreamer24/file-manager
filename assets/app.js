@@ -149,16 +149,48 @@ async function apiPost(action, body = {}) {
   if (!r.ok || !j.ok) throw responseError(j, r.status);
   return j;
 }
-async function loadFolder(showToast = false) {
-  renderLoading();
+let folderLoadSequence = 0;
+async function loadFolder(showToast = false, transition = false) {
+  const sequence = ++folderLoadSequence;
+  const keepCurrentContent = transition && content.hasChildNodes();
+
+  content.setAttribute("aria-busy", "true");
+  content.classList.remove("folder-enter");
+
+  if (keepCurrentContent) {
+    renderBreadcrumbs();
+    selectionBarHost.innerHTML = "";
+    stats.textContent = "Loading...";
+    content.classList.add("folder-loading");
+  } else {
+    renderLoading();
+  }
+
   try {
     const data = await apiGet("list", { path: state.path });
+    if (sequence !== folderLoadSequence) return;
+
     state.entries = data.entries || [];
     pruneSelection();
     render(data.stats);
+
+    if (keepCurrentContent) {
+      content.classList.remove("folder-loading");
+      void content.offsetWidth;
+      content.classList.add("folder-enter");
+      window.setTimeout(() => content.classList.remove("folder-enter"), 180);
+    }
+
     if (showToast) toast("Folder refreshed.");
   } catch (e) {
+    if (sequence !== folderLoadSequence) return;
+    content.classList.remove("folder-loading");
     showError(e.message || String(e));
+  } finally {
+    if (sequence === folderLoadSequence) {
+      content.classList.remove("folder-loading");
+      content.removeAttribute("aria-busy");
+    }
   }
 }
 function currentEntries() {
@@ -286,7 +318,7 @@ function openFolder(path) {
   if (state.path) u.searchParams.set("path", state.path);
   else u.searchParams.delete("path");
   history.pushState(null, "", u);
-  loadFolder();
+  loadFolder(false, true);
 }
 function renderBreadcrumbs() {
   const parts = state.path ? state.path.split("/") : [];
@@ -1956,7 +1988,7 @@ window.addEventListener("popstate", () => {
   syncLogoutPath();
   state.selected.clear();
   search.value = "";
-  loadFolder();
+  loadFolder(false, true);
 });
 window.addEventListener("beforeunload", (e) => {
   if (state.dirty) {

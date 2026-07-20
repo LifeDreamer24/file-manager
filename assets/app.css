@@ -1273,7 +1273,10 @@ body.editor-open {
   inset: 0;
   z-index: 120;
   display: none;
+  width: 100%;
+  max-width: 100vw;
   place-items: center;
+  overflow: hidden;
   padding: 22px;
   background: rgba(8, 10, 14, 0.72);
   backdrop-filter: blur(9px);
@@ -1304,7 +1307,11 @@ body.light .editor-shell {
 }
 .editor-head {
   display: flex;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   justify-content: space-between;
+  overflow: hidden;
   align-items: flex-start;
   gap: 12px;
   padding: 14px 16px;
@@ -1312,8 +1319,10 @@ body.light .editor-shell {
   background: rgba(255, 255, 255, 0.035);
 }
 .editor-title {
+  width: 0;
   min-width: 0;
-  flex: 1;
+  max-width: 100%;
+  flex: 1 1 0%;
 }
 .editor-title strong {
   display: block;
@@ -1341,12 +1350,17 @@ body.light .editor-shell {
 }
 .editor-head-actions {
   display: flex;
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
   gap: 10px;
   flex: 0 0 auto;
 }
 .editor-tools {
   display: flex;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
@@ -1454,6 +1468,9 @@ textarea.editor-word-wrap {
   border-right-color: rgba(66, 211, 146, 0.5);
 }
 .editor-preview {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   height: 100%;
   min-height: 0;
   display: grid;
@@ -1641,6 +1658,10 @@ body.light .editor-preview-head {
   height: auto;
 }
 .editor-note {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   padding: 10px 14px;
   border-top: 1px solid var(--line);
   color: var(--muted);
@@ -2587,12 +2608,15 @@ body.light .move-list {
     flex-direction: row;
   }
   .editor-shell .editor-title {
-    width: auto;
+    width: 0;
     min-width: 0;
+    max-width: 100%;
+    flex: 1 1 0%;
   }
   .editor-shell .editor-title strong,
   .editor-shell .editor-title span {
-    width: auto;
+    width: 100%;
+    max-width: 100%;
   }
   .editor-status {
     white-space: normal;
@@ -2807,6 +2831,16 @@ body.light .move-list {
     grid-column: 1 / -1;
   }
 }
+@media (max-width: 480px) {
+  .editor-shell .editor-tools {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .editor-shell .editor-tools > button,
+  .editor-shell .editor-tools-menu-group {
+    min-width: 0;
+  }
+}
+
 @media (hover: none) {
   button:hover,
   .action:hover {

@@ -2747,6 +2747,9 @@ body.light .move-list {
     border-radius: 16px;
     grid-template-rows: auto auto minmax(160px, 1fr) auto;
   }
+  .conflict-card {
+    grid-template-rows: auto auto auto;
+  }
   .move-head,
   .move-foot {
     padding: 12px;

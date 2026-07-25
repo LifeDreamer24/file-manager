@@ -2076,6 +2076,24 @@ document.addEventListener("click", () => {
   closeDropdowns();
   closeItemMenus();
 });
+content.addEventListener("contextmenu", (e) => {
+  const row = e.target.closest("tr[data-path]");
+  if (!row || !content.contains(row) || e.target.closest(".item-menu-list"))
+    return;
+
+  const menu = row.querySelector(".item-menu");
+  const toggle = menu?.querySelector(".item-menu-toggle");
+  if (!menu || !toggle) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+  closeItemMenus();
+  closeDropdowns();
+  menu.classList.add("open");
+  toggle.setAttribute("aria-expanded", "true");
+  positionItemMenu(menu);
+  updateMobileMenuState();
+});
 content.addEventListener("click", (e) => {
   const toggle = e.target.closest(".item-menu-toggle");
   if (toggle) {

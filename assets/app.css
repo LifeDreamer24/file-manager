@@ -1678,6 +1678,7 @@ body.light .editor-note {
   bottom: 18px;
   z-index: 180;
   display: none;
+  pointer-events: none;
   max-width: min(520px, calc(100vw - 36px));
   padding: 12px 14px;
   border: 1px solid var(--line);

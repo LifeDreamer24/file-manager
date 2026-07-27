@@ -549,7 +549,8 @@ function fileRelativePath(file) {
   return file.relativePath || file.webkitRelativePath || file.name;
 }
 let uploadInProgress = false,
-  uploadProgressTimer = 0;
+  uploadProgressTimer = 0,
+  uploadProgressTransitionTimer = 0;
 function setUploadControlsDisabled(disabled) {
   document
     .querySelectorAll("#uploadMenuBtn,[data-upload]")
@@ -558,11 +559,29 @@ function setUploadControlsDisabled(disabled) {
   uploadFolderInput.disabled = disabled;
   $("browserPanel").setAttribute("aria-busy", disabled ? "true" : "false");
 }
+function setUploadProgressVisible(visible) {
+  const currentlyVisible = uploadProgress.classList.contains("show");
+  if (currentlyVisible === visible) return;
+
+  const browserPanel = $("browserPanel");
+  clearTimeout(uploadProgressTransitionTimer);
+  browserPanel.classList.add("upload-progress-changing");
+  uploadProgress.classList.toggle("show", visible);
+  uploadProgress.setAttribute("aria-hidden", visible ? "false" : "true");
+
+  const reducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+  uploadProgressTransitionTimer = setTimeout(
+    () => browserPanel.classList.remove("upload-progress-changing"),
+    reducedMotion ? 0 : 320,
+  );
+}
 function showUploadProgress(percent, label, detail = "", status = "") {
   clearTimeout(uploadProgressTimer);
   uploadProgress.classList.remove("error", "partial");
   if (status) uploadProgress.classList.add(status);
-  uploadProgress.classList.add("show");
+  setUploadProgressVisible(true);
   uploadProgressLabel.textContent = label;
   uploadProgressDetail.textContent = detail;
   const determinate = typeof percent === "number" && Number.isFinite(percent);
@@ -582,7 +601,8 @@ function showUploadProgress(percent, label, detail = "", status = "") {
 function hideUploadProgress(delay = 2500) {
   clearTimeout(uploadProgressTimer);
   uploadProgressTimer = setTimeout(() => {
-    uploadProgress.classList.remove("show", "error", "partial");
+    setUploadProgressVisible(false);
+    uploadProgress.classList.remove("error", "partial");
   }, delay);
 }
 function cancelUploads() {

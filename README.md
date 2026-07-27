@@ -29,7 +29,7 @@ The project uses PHP, vanilla JavaScript, and CSS. It has no database, framework
 - Resolve existing names with **Skip existing**, **Keep both**, or **Replace**.
 - Report blocked files and upload failures instead of failing silently.
 
-The configured per-file limit is 512 MiB by default. Your PHP and hosting limits, including `upload_max_filesize` and `post_max_size`, may impose a lower limit.
+The configured per-file limit is 2 GiB by default. Your PHP and hosting limits, including `upload_max_filesize` and `post_max_size`, may impose a lower limit.
 
 ### Text editor
 
@@ -132,7 +132,7 @@ All application settings are documented in `config.php`. Important defaults incl
 | `public_base_url` | `files/` | Base used when copying public URLs |
 | `session_lifetime_seconds` | 12 hours | Maximum authenticated session age |
 | `max_edit_size` | 2 MiB | Largest file accepted by the text editor |
-| `max_upload_size` | 512 MiB | Per-file application upload limit |
+| `max_upload_size` | 2 GiB | Per-file application upload limit |
 | `default_conflict_policy` | `skip` | Safe default for an existing destination |
 | `allow_recursive_delete` | `true` | Allows deletion of non-empty folders |
 | `allow_zip_extract` | `true` | Enables ZIP extraction |

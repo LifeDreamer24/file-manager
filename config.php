@@ -35,7 +35,7 @@ return [
 
     // Maximum upload size checked by the app.
     // Your PHP upload_max_filesize and post_max_size must also allow the file size.
-    'max_upload_size' => 512 * 1024 * 1024,
+    'max_upload_size' => 2 * 1024 * 1024 * 1024,
 
     // Existing upload/extraction destination policy: skip, keep_both, or replace.
     // The interface sends the user's choice; this is the safe API fallback.
@@ -43,8 +43,8 @@ return [
 
     // ZIP extraction resource limits.
     'max_zip_entries' => 5000,
-    'max_zip_entry_size' => 512 * 1024 * 1024,
-    'max_zip_uncompressed_size' => 2 * 1024 * 1024 * 1024,
+    'max_zip_entry_size' => 2 * 1024 * 1024 * 1024,
+    'max_zip_uncompressed_size' => 8 * 1024 * 1024 * 1024,
     'max_zip_expansion_ratio' => 200,
 
     // Block dangerous/system files from being uploaded.

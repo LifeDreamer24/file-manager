@@ -1084,6 +1084,40 @@ if ($action === 'save') {
     ]);
 }
 
+if ($action === 'upload_conflicts') {
+    $input = json_decode(file_get_contents('php://input') ?: '{}', true);
+    if (!is_array($input)) {
+        json_response(['ok' => false, 'error' => 'Invalid JSON body.'], 400);
+    }
+
+    $rel = clean_rel_path((string)($input['path'] ?? ''));
+    $dir = full_path($config, $rel);
+    $paths = $input['paths'] ?? [];
+
+    if (!is_dir($dir)) {
+        json_response(['ok' => false, 'error' => 'Upload target is not a folder.'], 400);
+    }
+    if (!is_array($paths)) {
+        json_response(['ok' => false, 'error' => 'paths must be an array.'], 400);
+    }
+
+    $conflicts = [];
+    foreach ($paths as $relativeRaw) {
+        [$pathOk, $uploadRelPath] = clean_upload_rel_path($config, (string)$relativeRaw);
+        if (!$pathOk) continue;
+
+        $dest = $dir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $uploadRelPath);
+        if (file_exists($dest) || is_link($dest)) {
+            $conflicts[] = $uploadRelPath;
+        }
+    }
+
+    json_response([
+        'ok' => true,
+        'conflicts' => array_values(array_unique($conflicts)),
+    ]);
+}
+
 if ($action === 'upload') {
     $rel = clean_rel_path((string)($_GET['path'] ?? $_POST['path'] ?? ''));
     $dir = full_path($config, $rel);

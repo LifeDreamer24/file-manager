@@ -1079,7 +1079,14 @@ body.light .action {
 .item-menu.open .item-menu-list {
   display: grid;
   gap: 4px;
+  max-height: min(70dvh, var(--item-menu-max-height, 520px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
   animation: toastIn 0.14s ease both;
+}
+.item-menu.open-up .item-menu-list {
+  top: auto;
+  bottom: calc(100% + 8px);
 }
 .item-menu-list .action,
 .item-menu-list button {

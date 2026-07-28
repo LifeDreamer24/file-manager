@@ -13,13 +13,14 @@
 
   async function refreshStorageUsage() {
     if (request) request.abort();
-    request = new AbortController();
+    const controller = new AbortController();
+    request = controller;
 
     try {
       const response = await fetch("disk-usage.php", {
         credentials: "same-origin",
         cache: "no-store",
-        signal: request.signal,
+        signal: controller.signal,
       });
       const data = await response.json();
 
@@ -45,7 +46,7 @@
       track.setAttribute("aria-valuenow", "0");
       storage.classList.remove("warning", "critical");
     } finally {
-      request = null;
+      if (request === controller) request = null;
     }
   }
 

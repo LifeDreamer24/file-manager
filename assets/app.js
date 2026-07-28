@@ -2039,7 +2039,6 @@ function positionItemMenu(menu) {
 
   menu.classList.remove("open-up");
   list.style.removeProperty("--item-menu-max-height");
-  if (window.innerWidth > 760) return;
 
   const rect = toggle.getBoundingClientRect();
   const viewportTop = window.visualViewport?.offsetTop || 0;

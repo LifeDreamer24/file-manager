@@ -183,15 +183,6 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
         <nav id="breadcrumbs" class="breadcrumbs" aria-label="Breadcrumb"></nav>
         <div id="stats" class="stats">Loading...</div>
       </div>
-      <div id="storageUsage" class="storage-usage" role="status" aria-live="polite">
-        <div class="storage-usage-head">
-          <span class="storage-usage-title">VPS storage</span>
-          <span id="storageUsageDetail" class="storage-usage-detail">Checking disk usage...</span>
-        </div>
-        <div id="storageUsageTrack" class="storage-usage-track" role="progressbar" aria-label="VPS storage usage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-          <div id="storageUsageBar" class="storage-usage-bar"></div>
-        </div>
-      </div>
       <div id="uploadProgress" class="upload-progress" role="status" aria-live="polite" aria-atomic="true">
         <div class="upload-progress-head">
           <strong id="uploadProgressLabel" class="upload-progress-label">Preparing upload...</strong>
@@ -209,6 +200,16 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
       <div id="content"><div class="message">Loading folder...</div></div>
     </section>
     <div id="selectionBarHost" class="selection-bar-host"></div>
+
+    <div id="storageUsage" class="storage-usage" role="status" aria-live="polite">
+      <div class="storage-usage-head">
+        <span class="storage-usage-title">Storage</span>
+        <span id="storageUsageDetail" class="storage-usage-detail">Checking disk usage...</span>
+      </div>
+      <div id="storageUsageTrack" class="storage-usage-track" role="progressbar" aria-label="Storage usage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="storageUsageBar" class="storage-usage-bar"></div>
+      </div>
+    </div>
 
     <p class="footer">LifeDreamer24 · Released under the Unlicense</p>
   </main>

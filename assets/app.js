@@ -109,6 +109,16 @@ function filePublicUrl(item) {
       apiUrl("download", { path: item.path }).toString(),
   );
 }
+function folderManagerUrl(item) {
+  const url = new URL(location.href);
+  url.hash = "";
+  url.search = "";
+  url.searchParams.set("path", cleanPath(item.path));
+  return url.href;
+}
+function itemCopyUrl(item) {
+  return item.type === "dir" ? folderManagerUrl(item) : filePublicUrl(item);
+}
 function fileDownloadUrl(item) {
   return absoluteUrl(
     item.download_url || apiUrl("download", { path: item.path }).toString(),
@@ -315,7 +325,7 @@ function renderRow(item) {
   const sizeLabel = isDir
     ? "—"
     : escapeHtml(item.size_label || formatBytes(item.size));
-  return `<tr class="${isDir ? "folder" : "file"}${isSelected ? " selected" : ""}" draggable="true" data-path="${escapeAttr(item.path)}" data-name="${escapeAttr(item.name)}" data-public-url="${escapeAttr(filePublicUrl(item))}" data-type="${item.type}" ${isDir ? `data-drop-folder="${escapeAttr(item.path)}"` : ""}><td class="select-col"><input class="row-select" type="checkbox" aria-label="Select ${escapeAttr(item.name)}" ${isSelected ? "checked" : ""}></td><td class="name-cell">${nameMarkup}<span class="icon">${icon}</span><span class="truncate-text" title="${escapeAttr(item.path)}">${escapeHtml(item.name)}</span></a><div class="row-meta"><span>${escapeHtml(modified)}</span><span>${sizeLabel}</span></div></td><td class="muted hide-sm modified-cell">${escapeHtml(modified)}</td><td class="right muted size-cell"><span class="size-value">${sizeLabel}</span></td><td class="right actions-cell"><div class="actions">${actions}</div></td></tr>`;
+  return `<tr class="${isDir ? "folder" : "file"}${isSelected ? " selected" : ""}" draggable="true" data-path="${escapeAttr(item.path)}" data-name="${escapeAttr(item.name)}" data-public-url="${escapeAttr(itemCopyUrl(item))}" data-type="${item.type}" ${isDir ? `data-drop-folder="${escapeAttr(item.path)}"` : ""}><td class="select-col"><input class="row-select" type="checkbox" aria-label="Select ${escapeAttr(item.name)}" ${isSelected ? "checked" : ""}></td><td class="name-cell">${nameMarkup}<span class="icon">${icon}</span><span class="truncate-text" title="${escapeAttr(item.path)}">${escapeHtml(item.name)}</span></a><div class="row-meta"><span>${escapeHtml(modified)}</span><span>${sizeLabel}</span></div></td><td class="muted hide-sm modified-cell">${escapeHtml(modified)}</td><td class="right muted size-cell"><span class="size-value">${sizeLabel}</span></td><td class="right actions-cell"><div class="actions">${actions}</div></td></tr>`;
 }
 function openFolder(path) {
   state.path = cleanPath(path);
@@ -420,7 +430,7 @@ async function copySelectedUrls() {
     toast("No selected items.");
     return;
   }
-  const urls = items.map((item) => filePublicUrl(item));
+  const urls = items.map((item) => itemCopyUrl(item));
   await copyText(
     urls.join("\n"),
     `Copied ${urls.length} URL${urls.length === 1 ? "" : "s"}`,

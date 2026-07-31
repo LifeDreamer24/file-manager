@@ -475,6 +475,19 @@ function media_mime_type(string $path): ?string {
     };
 }
 
+function image_mime_type(string $path): ?string {
+    return match (extension_of($path)) {
+        'jpg', 'jpeg', 'jpe' => 'image/jpeg',
+        'png' => 'image/png',
+        'gif' => 'image/gif',
+        'webp' => 'image/webp',
+        'avif' => 'image/avif',
+        'bmp', 'dib' => 'image/bmp',
+        'ico' => 'image/x-icon',
+        default => null,
+    };
+}
+
 function media_kind(string $path): ?string {
     $mime = media_mime_type($path);
     if ($mime === null) return null;
@@ -507,7 +520,7 @@ function send_media_stream(string $file, string $mime): void {
     $size = filesize($file);
     if ($size === false || $size < 1) {
         http_response_code(404);
-        echo 'Media file is empty or unavailable.';
+        echo 'File is empty or unavailable.';
         exit;
     }
 
@@ -924,7 +937,7 @@ if ($action === 'stream') {
 
     $rel = clean_rel_path((string)($_GET['path'] ?? ''));
     $file = full_path($config, $rel);
-    $mime = media_mime_type($file);
+    $mime = media_mime_type($file) ?? image_mime_type($file);
 
     if (!is_file($file)) {
         http_response_code(404);
@@ -933,7 +946,7 @@ if ($action === 'stream') {
     }
     if ($mime === null) {
         http_response_code(415);
-        echo 'This file type cannot be played.';
+        echo 'This file type cannot be previewed.';
         exit;
     }
 
@@ -1011,6 +1024,7 @@ if ($action === 'list') {
             $totalSize += $size;
             $ext = extension_of($name);
             $mediaKind = media_kind($name);
+            $imageMime = image_mime_type($name);
             $entries[] = [
                 'type' => 'file',
                 'name' => $name,
@@ -1023,6 +1037,9 @@ if ($action === 'list') {
                 'media_type' => $mediaKind,
                 'media_mime' => $mediaKind === null ? null : media_mime_type($name),
                 'stream_url' => $mediaKind === null ? null : 'api.php?action=stream&path=' . rawurlencode($entryRel),
+                'image_type' => $imageMime !== null,
+                'image_mime' => $imageMime,
+                'preview_url' => $imageMime === null ? null : 'api.php?action=stream&path=' . rawurlencode($entryRel),
                 'public_url' => public_url($config, $entryRel),
                 'download_url' => 'api.php?action=download&path=' . rawurlencode($entryRel),
                 'download_name' => $ext === 'lnk' ? preg_replace('/\.lnk$/i', '', $name) . '.zip' : $name,

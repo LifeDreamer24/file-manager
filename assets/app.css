@@ -3637,3 +3637,58 @@ button:active:not(:disabled),
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Signed-in application card */
+.wrap {
+  box-sizing: border-box;
+  width: min(1184px, calc(100% - 32px));
+  margin: 28px auto 32px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), transparent 34%),
+    rgba(23, 26, 33, 0.9);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(18px) saturate(1.08);
+  overflow: visible;
+}
+
+body.light .wrap {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.86), transparent 42%),
+    rgba(255, 255, 255, 0.78);
+  box-shadow:
+    0 24px 70px rgba(31, 41, 55, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+@media (max-width: 760px) {
+  .wrap {
+    width: calc(100% - 20px);
+    margin: 10px auto;
+    padding: 16px;
+    border-radius: 18px;
+    scroll-margin-top: 0;
+  }
+}
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  @media (max-width: 760px) {
+    .wrap {
+      margin-top: calc(10px + env(safe-area-inset-top));
+      margin-bottom: calc(10px + env(safe-area-inset-bottom));
+      padding: 16px;
+    }
+  }
+}
+
+@media (max-width: 430px) {
+  .wrap {
+    width: calc(100% - 16px);
+    padding: 12px;
+    border-radius: 16px;
+  }
+}

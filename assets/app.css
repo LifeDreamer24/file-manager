@@ -3634,6 +3634,32 @@ button:active:not(:disabled),
   }
 }
 
+/* Keep flat dotted patterns legible on high-density mobile screens. */
+@media (max-width: 760px) {
+  body {
+    --dot: rgba(143, 240, 193, 0.3);
+  }
+  body.light {
+    --dot: rgba(35, 146, 105, 0.3);
+  }
+  body::after {
+    opacity: 1;
+  }
+  .editor-head::before,
+  .media-head::before,
+  .conflict-card .move-head::before,
+  .upload-overlay-card::before {
+    background: radial-gradient(
+        circle at center,
+        var(--dot) 0,
+        var(--dot) 1.35px,
+        transparent 1.6px
+      )
+      0 0 / 16px 16px;
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .badge-dot {
     animation: none;

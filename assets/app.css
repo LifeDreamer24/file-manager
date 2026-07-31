@@ -3637,12 +3637,20 @@ button:active:not(:disabled),
 /* Keep flat dotted patterns legible on high-density mobile screens. */
 @media (max-width: 760px) {
   body {
-    --dot: rgba(143, 240, 193, 0.3);
+    --dot: rgba(143, 240, 193, 0.52);
   }
   body.light {
-    --dot: rgba(35, 146, 105, 0.3);
+    --dot: rgba(35, 146, 105, 0.46);
   }
   body::after {
+    z-index: 0;
+    background-image: radial-gradient(
+      circle at center,
+      var(--dot) 0,
+      var(--dot) 1.6px,
+      transparent 1.85px
+    );
+    background-size: 17px 17px;
     opacity: 1;
   }
   .editor-head::before,
@@ -3652,10 +3660,10 @@ button:active:not(:disabled),
     background: radial-gradient(
         circle at center,
         var(--dot) 0,
-        var(--dot) 1.35px,
-        transparent 1.6px
+        var(--dot) 1.6px,
+        transparent 1.85px
       )
-      0 0 / 16px 16px;
+      0 0 / 15px 15px;
     opacity: 1;
   }
 }

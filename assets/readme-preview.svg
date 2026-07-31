@@ -133,7 +133,7 @@
     <path d="M627 204v-20m-7 7 7-7 7 7m-15 13v6h16v-6" fill="none" stroke="#d8dfdc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     <text x="648" y="203" fill="#edf2f0" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="16" font-weight="600">Upload</text>
     <rect x="738" y="172" width="124" height="48" rx="10" fill="#20282d" stroke="#303b40"/>
-    <path d="M772 187a10 10 0 1 0 2 14m-2-14v8h-8" fill="none" stroke="#d8dfdc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M777 196a9 9 0 0 0-15.17-6.52L759 192m0-5v5h5M759 196a9 9 0 0 0 15.17 6.48L777 200m0 5v-5h-5" fill="none" stroke="#d8dfdc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     <text x="789" y="203" fill="#edf2f0" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="16" font-weight="600">Refresh</text>
     <rect x="1010" y="172" width="210" height="48" rx="11" fill="#151d21" stroke="#364146"/>
     <circle cx="1037" cy="195" r="8" fill="none" stroke="#9da8a5" stroke-width="2"/><path d="m1043 201 7 7" stroke="#9da8a5" stroke-width="2"/>

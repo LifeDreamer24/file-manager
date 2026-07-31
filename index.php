@@ -147,7 +147,7 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
         <input type="password" name="password" placeholder="Password" autocomplete="current-password" autofocus required />
         <button type="submit" <?= $passwordConfigured ? '' : 'disabled' ?>>Log in</button>
       </form>
-      <a class="login-back" href="<?= htmlspecialchars(app_base_url(), ENT_QUOTES, 'UTF-8') ?>" data-page-transition>← Back to homepage</a>
+      <a class="login-back" href="<?= htmlspecialchars(app_base_url(), ENT_QUOTES, 'UTF-8') ?>" data-page-transition>Back to homepage</a>
       <p class="footer">LifeDreamer24 · Released under the Unlicense</p>
     </section>
   </main>

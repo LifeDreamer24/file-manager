@@ -1542,8 +1542,39 @@ if ($action === 'create') {
     }
 
     $newPath = $parent . DIRECTORY_SEPARATOR . $name;
-    if (file_exists($newPath)) {
-        json_response(['ok' => false, 'error' => 'A file or folder with that name already exists.'], 400);
+    $existingPath = file_exists($newPath) || is_link($newPath);
+    if ($existingPath) {
+        if ($type !== 'file' || is_dir($newPath) || is_link($newPath)) {
+            json_response(['ok' => false, 'error' => 'A folder with that name already exists.'], 409);
+        }
+
+        $requestedPolicy = isset($input['conflict']) && is_string($input['conflict'])
+            ? strtolower($input['conflict'])
+            : '';
+        if (!in_array($requestedPolicy, ['skip', 'keep_both', 'replace'], true)) {
+            $rel = trim(($parentRel ? $parentRel . '/' : '') . $name, '/');
+            json_response([
+                'ok' => false,
+                'error' => 'A file with that name already exists.',
+                'code' => 'create_conflict',
+                'path' => $rel,
+            ], 409);
+        }
+
+        if ($requestedPolicy === 'skip') {
+            $rel = trim(($parentRel ? $parentRel . '/' : '') . $name, '/');
+            json_response([
+                'ok' => true,
+                'message' => 'Existing file kept.',
+                'path' => $rel,
+                'type' => 'file',
+                'skipped' => true,
+            ]);
+        }
+
+        if ($requestedPolicy === 'keep_both') {
+            $newPath = keep_both_path($newPath);
+        }
     }
 
     if ($type === 'dir') {
@@ -1557,7 +1588,8 @@ if ($action === 'create') {
         }
     }
 
-    $rel = trim(($parentRel ? $parentRel . '/' : '') . $name, '/');
+    $createdName = basename($newPath);
+    $rel = trim(($parentRel ? $parentRel . '/' : '') . $createdName, '/');
     json_response(['ok' => true, 'message' => ucfirst($type) . ' created.', 'path' => $rel, 'type' => $type]);
 }
 

@@ -8,7 +8,17 @@
     clearTimeout(restoreTimer);
     navigating = false;
     document.body.classList.remove("page-leaving");
-    if (reducedMotion.matches) return;
+    if (reducedMotion.matches) {
+      document.body.classList.remove("page-entering");
+      return;
+    }
+    if (document.body.classList.contains("page-entering")) {
+      window.setTimeout(
+        () => document.body.classList.remove("page-entering"),
+        190,
+      );
+      return;
+    }
     document.body.classList.remove("page-entering");
     requestAnimationFrame(() => {
       document.body.classList.add("page-entering");

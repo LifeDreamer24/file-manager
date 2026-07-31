@@ -2093,7 +2093,10 @@ body.light .image-foot {
   min-width: 38px;
   min-height: 38px;
   padding: 6px;
+  justify-content: center;
+  text-align: center;
   font-size: 1.15rem;
+  line-height: 1;
 }
 .image-zoom-label {
   min-width: 52px;

@@ -665,10 +665,30 @@ body.light .editor-head {
   white-space: nowrap;
 }
 .selection-bar-host {
-  margin-top: 12px;
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition:
+    grid-template-rows 0.22s ease,
+    margin-top 0.22s ease,
+    opacity 0.16s ease,
+    transform 0.22s ease,
+    visibility 0s linear 0.22s;
 }
-.selection-bar-host:empty {
-  display: none;
+.selection-bar-host.show {
+  grid-template-rows: 1fr;
+  margin-top: 12px;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition-delay: 0s;
+}
+.selection-bar-clip {
+  min-height: 0;
+  overflow: hidden;
 }
 .bulkbar {
   display: none;
@@ -683,12 +703,20 @@ body.light .editor-head {
   position: relative;
   z-index: 30;
   display: flex;
+  min-height: 0;
+  overflow: hidden;
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 14px;
   box-shadow: none;
   backdrop-filter: blur(14px);
   isolation: isolate;
+}
+@media (prefers-reduced-motion: reduce) {
+  .selection-bar-host {
+    transform: none;
+    transition: none;
+  }
 }
 body.light .bulkbar {
   background: rgba(255, 255, 255, 0.96);
@@ -2421,7 +2449,7 @@ body.light .move-list {
   .hide-sm {
     display: none !important;
   }
-  .selection-bar-host {
+  .selection-bar-host.show {
     margin-top: 10px;
   }
   .bulkbar {

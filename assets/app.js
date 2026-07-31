@@ -202,7 +202,7 @@ async function loadFolder(showToast = false, transition = false) {
 
   if (keepCurrentContent) {
     renderBreadcrumbs();
-    selectionBarHost.innerHTML = "";
+    hideSelectionBar();
     stats.textContent = "Loading...";
     content.classList.add("folder-loading");
   } else {
@@ -330,16 +330,30 @@ function truncatePath(path, max = 42) {
   const head = Math.max(4, max - marker.length - tail);
   return path.slice(0, head) + marker + path.slice(-tail);
 }
-function selectionBar() {
+function selectionBarMarkup() {
+  return `<div class="selection-bar-clip"><div class="bulkbar show" id="bulkbar" aria-live="polite" aria-hidden="true"><div class="bulk-summary"><strong data-selection-count>0</strong> selected</div><div class="bulk-actions"><button class="action" type="button" data-bulk-action="download">Download as ZIP</button><button class="action" type="button" data-bulk-action="copy">Copy URLs</button><button class="action" type="button" data-bulk-action="move">Move</button><button class="action" type="button" data-bulk-action="extract" disabled>Extract</button><button class="action danger" type="button" data-bulk-action="delete">Delete</button><button class="action" type="button" data-bulk-action="clear">Deselect</button></div></div></div>`;
+}
+function hideSelectionBar() {
+  if (!$("#bulkbar")) selectionBarHost.innerHTML = selectionBarMarkup();
+  selectionBarHost.classList.remove("show");
+  $("#bulkbar").setAttribute("aria-hidden", "true");
+  $("#bulkbar").inert = true;
+}
+function updateSelectionBar() {
   const selected = selectedItems(),
     count = selected.length;
-  if (!count) return "";
+  if (!$("#bulkbar")) selectionBarHost.innerHTML = selectionBarMarkup();
+  const bulkbar = $("#bulkbar");
   const extractable = selected.some((i) => i.type === "file" && i.extractable);
-  return `<div class="bulkbar show" id="bulkbar" aria-live="polite"><div class="bulk-summary"><strong>${count}</strong> selected</div><div class="bulk-actions"><button class="action" type="button" data-bulk-action="download">Download as ZIP</button><button class="action" type="button" data-bulk-action="copy">Copy URLs</button><button class="action" type="button" data-bulk-action="move">Move</button><button class="action" type="button" data-bulk-action="extract" ${extractable ? "" : "disabled"}>Extract</button><button class="action danger" type="button" data-bulk-action="delete">Delete</button><button class="action" type="button" data-bulk-action="clear">Deselect</button></div></div>`;
+  bulkbar.querySelector("[data-selection-count]").textContent = String(count);
+  bulkbar.querySelector('[data-bulk-action="extract"]').disabled = !extractable;
+  selectionBarHost.classList.toggle("show", count > 0);
+  bulkbar.setAttribute("aria-hidden", count > 0 ? "false" : "true");
+  bulkbar.inert = count === 0;
 }
 function render(s) {
   renderBreadcrumbs();
-  selectionBarHost.innerHTML = selectionBar();
+  updateSelectionBar();
   const entries = currentEntries();
   if (!s) {
     const folders = entries.filter((i) => i.type === "dir").length,
@@ -421,13 +435,13 @@ function renderBreadcrumbs() {
 }
 function renderLoading() {
   renderBreadcrumbs();
-  selectionBarHost.innerHTML = "";
+  hideSelectionBar();
   stats.textContent = "Loading...";
   content.innerHTML = `<div class="message">Loading folder...</div>`;
 }
 function showError(message) {
   renderBreadcrumbs();
-  selectionBarHost.innerHTML = "";
+  hideSelectionBar();
   stats.textContent = "Error";
   content.innerHTML = `<div class="message error"><strong>Could not load folder.</strong><br>${escapeHtml(message)}</div>`;
 }

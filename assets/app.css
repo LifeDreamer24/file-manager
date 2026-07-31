@@ -321,7 +321,7 @@ body.light .dropdown-menu {
   color: #ffffff;
   background: rgba(66, 211, 146, 0.2);
   border-color: rgba(66, 211, 146, 0.75);
-  box-shadow: none;
+  box-shadow: 0 0 0 3px rgba(66, 211, 146, 0.16);
 }
 body.light .dropdown-menu {
   background: #ffffff;

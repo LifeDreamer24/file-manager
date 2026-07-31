@@ -65,6 +65,7 @@ Recognized formats are JPEG, PNG, GIF, WebP, AVIF, BMP/DIB, and ICO. Actual disp
 
 ### Interface
 
+- Detailed public homepage with a theme-matched product preview, feature overview, and a clear route to the login view.
 - Responsive desktop and mobile layouts with touch-friendly controls.
 - Compact mobile rows and menus designed for narrow portrait screens.
 - System, light, and dark themes through a persistent three-state toggle.
@@ -89,7 +90,7 @@ Other web servers can run the application, but equivalent access-control, script
 2. Preserve the included `.htaccess` files.
 3. Make `files/` writable by the web-server user.
 4. Configure a strong manager password.
-5. Open `index.php` in a browser and sign in.
+5. Open the site in a browser, then use the homepage's **Log in** button to enter the manager.
 
 The default project layout is:
 
@@ -213,3 +214,4 @@ Developed and refined with **OpenAI / ChatGPT**.
 ## License
 
 Released into the public domain under the [Unlicense](LICENSE).
+

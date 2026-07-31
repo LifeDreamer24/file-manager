@@ -149,11 +149,9 @@ h1 {
   line-height: 1.12;
   letter-spacing: -0.045em;
   color: var(--text);
-  background: linear-gradient(105deg, var(--text) 12%, var(--accent2) 92%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 8px 24px rgba(66, 211, 146, 0.12));
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  filter: none;
 }
 .subtitle {
   margin: 0;
@@ -951,6 +949,22 @@ td {
 body.light th,
 body.light td {
   border-bottom-color: rgba(215, 222, 232, 0.9);
+}
+#browserPanel .file-table th,
+#browserPanel .file-table td {
+  border-bottom-color: rgba(92, 106, 125, 0.72);
+}
+body.light #browserPanel .file-table th,
+body.light #browserPanel .file-table td {
+  border-bottom-color: rgba(190, 201, 215, 0.98);
+}
+#browserPanel .file-table thead th,
+#browserPanel > .pathbar {
+  border-bottom-color: rgba(126, 141, 161, 0.76);
+}
+body.light #browserPanel .file-table thead th,
+body.light #browserPanel > .pathbar {
+  border-bottom-color: rgba(156, 171, 190, 0.88);
 }
 th {
   color: var(--muted);
@@ -3552,7 +3566,8 @@ body.light .toolbar input[type="search"] {
 .media-head::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: 0 auto 0 0;
+  width: 46%;
   z-index: 0;
   pointer-events: none;
   background:
@@ -3562,18 +3577,18 @@ body.light .toolbar input[type="search"] {
         transparent 1.35px
       )
       0 0 / 17px 17px,
-    linear-gradient(90deg, var(--surface-glow), transparent 78%);
+    linear-gradient(90deg, var(--surface-glow), transparent 92%);
   -webkit-mask-image: linear-gradient(
     90deg,
     #000 0%,
-    rgba(0, 0, 0, 0.88) 44%,
-    transparent 92%
+    rgba(0, 0, 0, 0.88) 54%,
+    transparent 100%
   );
   mask-image: linear-gradient(
     90deg,
     #000 0%,
-    rgba(0, 0, 0, 0.88) 44%,
-    transparent 92%
+    rgba(0, 0, 0, 0.88) 54%,
+    transparent 100%
   );
   opacity: 0.9;
 }

@@ -1660,7 +1660,7 @@ function changeImageZoom(multiplier) {
   updateImageTransform();
 }
 function rotateImage(amount) {
-  state.imageRotation = (state.imageRotation + amount + 360) % 360;
+  state.imageRotation += amount;
   updateImageTransform();
 }
 function openImage(path, trigger = null) {

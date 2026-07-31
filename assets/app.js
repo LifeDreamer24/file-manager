@@ -2547,12 +2547,14 @@ $("newMenuBtn").addEventListener("click", (e) => {
   e.stopPropagation();
   const willOpen = !newDropdown.classList.contains("open");
   closeDropdowns();
+  closeItemMenus();
   if (willOpen) newDropdown.classList.add("open");
 });
 uploadMenuBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   const willOpen = !uploadDropdown.classList.contains("open");
   closeDropdowns();
+  closeItemMenus();
   if (willOpen) uploadDropdown.classList.add("open");
 });
 document.addEventListener("click", () => {

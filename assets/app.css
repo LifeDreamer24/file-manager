@@ -1190,6 +1190,9 @@ body.light .item-menu-list button {
   width: 100%;
   padding: 24px;
 }
+.login-card > .footer {
+  text-align: center;
+}
 .login-card-head {
   display: flex;
   align-items: flex-start;

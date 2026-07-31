@@ -200,6 +200,10 @@ body.light .home-button-small {
   background: rgba(66, 211, 146, 0.07);
 }
 
+body.light .home-eyebrow {
+  color: #14815b;
+}
+
 .home-hero h1 {
   max-width: 640px;
   margin: 0 0 22px;

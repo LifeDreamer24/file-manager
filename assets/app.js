@@ -202,7 +202,7 @@ function cancelFolderMotion() {
   folderPanelAnimation?.cancel();
   folderContentAnimation = null;
   folderPanelAnimation = null;
-  content.closest(".wrap")?.classList.remove("folder-resizing");
+  content.classList.remove("folder-resizing");
 }
 async function waitForAnimation(animation) {
   if (!animation) return;
@@ -261,7 +261,6 @@ async function loadFolder(
   const sequence = ++folderLoadSequence;
   const keepCurrentContent = transition && content.hasChildNodes();
   const animateChange = keepCurrentContent && !folderMotionMedia.matches;
-  const appWrap = content.closest(".wrap");
 
   cancelFolderMotion();
   content.setAttribute("aria-busy", "true");
@@ -281,7 +280,7 @@ async function loadFolder(
     const data = await apiGet("list", { path: state.path });
     if (sequence !== folderLoadSequence) return;
 
-    const previousPanelHeight = appWrap?.getBoundingClientRect().height || 0;
+    const previousPanelHeight = content.getBoundingClientRect().height;
 
     if (animateChange) {
       folderContentAnimation = folderFadeTarget().animate(
@@ -301,7 +300,7 @@ async function loadFolder(
     render(data.stats);
 
     if (animateChange) {
-      const nextPanelHeight = appWrap?.getBoundingClientRect().height || 0;
+      const nextPanelHeight = content.getBoundingClientRect().height;
 
       folderContentAnimation?.cancel();
       folderContentAnimation = folderFadeTarget().animate(
@@ -314,12 +313,11 @@ async function loadFolder(
       );
 
       if (
-        appWrap &&
         previousPanelHeight > 0 &&
         Math.abs(nextPanelHeight - previousPanelHeight) > 1
       ) {
-        appWrap.classList.add("folder-resizing");
-        folderPanelAnimation = appWrap.animate(
+        content.classList.add("folder-resizing");
+        folderPanelAnimation = content.animate(
           [
             { height: `${previousPanelHeight}px` },
             { height: `${nextPanelHeight}px` },

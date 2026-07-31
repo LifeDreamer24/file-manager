@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="640" viewBox="-50 -35 1700 730" role="img" aria-labelledby="title desc">
+  <title id="title">File Manager interface preview</title>
+  <desc id="desc">A layered dark green file manager, text editor, and image viewer fading into transparency around the edges.</desc>
+
+  <defs>
+    <radialGradient id="backdrop" cx="50%" cy="48%" r="56%">
+      <stop offset="0" stop-color="#0a2922" stop-opacity=".98"/>
+      <stop offset=".48" stop-color="#071b19" stop-opacity=".88"/>
+      <stop offset=".78" stop-color="#061113" stop-opacity=".48"/>
+      <stop offset="1" stop-color="#061113" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#151c20"/>
+      <stop offset="1" stop-color="#0d1215"/>
+    </linearGradient>
+    <linearGradient id="panelHeader" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1d252a"/>
+      <stop offset="1" stop-color="#11171a"/>
+    </linearGradient>
+    <linearGradient id="greenButton" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#28b77b"/>
+      <stop offset="1" stop-color="#0f8157"/>
+    </linearGradient>
+    <linearGradient id="folder" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6bddaa"/>
+      <stop offset="1" stop-color="#20a26e"/>
+    </linearGradient>
+    <linearGradient id="photoSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#082834"/>
+      <stop offset=".55" stop-color="#0c5260"/>
+      <stop offset="1" stop-color="#071517"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-30%" width="140%" height="170%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity=".55"/>
+    </filter>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+    <clipPath id="viewerClip">
+      <rect x="1162" y="282" width="345" height="212" rx="8"/>
+    </clipPath>
+    <symbol id="folderIcon" viewBox="0 0 36 30">
+      <path d="M2 6a4 4 0 0 1 4-4h9l4 5h11a4 4 0 0 1 4 4v13a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4Z" fill="url(#folder)"/>
+      <path d="M4 11h28" stroke="#9af2cb" stroke-opacity=".55"/>
+    </symbol>
+    <symbol id="fileIcon" viewBox="0 0 28 34">
+      <path d="M4 1h13l7 7v23a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2Z" fill="#d7e5df"/>
+      <path d="M17 1v7h7" fill="#87cdb0"/>
+      <path d="M7 16h12M7 21h12M7 26h8" stroke="#55736a" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="check" viewBox="0 0 28 28">
+      <circle cx="14" cy="14" r="13" fill="#35c98b" stroke="#8af0c4"/>
+      <path d="m8 14 4 4 8-9" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+
+  <!-- The atmospheric plate fades to true transparency on every side. -->
+  <ellipse cx="800" cy="334" rx="770" ry="292" fill="url(#backdrop)"/>
+  <ellipse cx="800" cy="350" rx="585" ry="205" fill="#23b77b" opacity=".08" filter="url(#softGlow)"/>
+
+  <!-- Text editor behind the manager. -->
+  <g transform="rotate(-2 275 390)" filter="url(#shadow)">
+    <rect x="30" y="218" width="500" height="330" rx="24" fill="url(#panel)" stroke="#31423f"/>
+    <path d="M54 218h452a24 24 0 0 1 24 24v40H30v-40a24 24 0 0 1 24-24Z" fill="url(#panelHeader)"/>
+    <circle cx="58" cy="250" r="5" fill="#708087"/><circle cx="76" cy="250" r="5" fill="#708087"/><circle cx="94" cy="250" r="5" fill="#2ab67e"/>
+    <rect x="52" y="303" width="86" height="222" rx="10" fill="#11191c"/>
+    <rect x="65" y="322" width="56" height="8" rx="4" fill="#405057"/>
+    <rect x="65" y="350" width="45" height="8" rx="4" fill="#2eb17c"/>
+    <rect x="65" y="378" width="62" height="8" rx="4" fill="#405057"/>
+    <rect x="65" y="406" width="52" height="8" rx="4" fill="#405057"/>
+    <rect x="65" y="434" width="40" height="8" rx="4" fill="#405057"/>
+    <g stroke-linecap="round" stroke-width="7">
+      <path d="M171 325h52m16 0h90" stroke="#68777a"/>
+      <path d="M188 351h122m16 0h60" stroke="#667679"/>
+      <path d="M188 377h54m16 0h88" stroke="#24a873"/>
+      <path d="M207 403h142" stroke="#667679"/>
+      <path d="M188 429h79m16 0h106" stroke="#27b078"/>
+      <path d="M207 455h60m16 0h67" stroke="#68777a"/>
+      <path d="M188 481h104m16 0h79" stroke="#4c5b5e"/>
+      <path d="M207 507h81" stroke="#29aa75"/>
+    </g>
+  </g>
+
+  <!-- Image viewer behind the manager. -->
+  <g transform="rotate(2 1330 397)" filter="url(#shadow)">
+    <rect x="1118" y="224" width="444" height="332" rx="24" fill="url(#panel)" stroke="#31423f"/>
+    <path d="M1142 224h396a24 24 0 0 1 24 24v40h-444v-40a24 24 0 0 1 24-24Z" fill="url(#panelHeader)"/>
+    <path d="m1150 256-9 0m4-5-5 5 5 5m30-5h12m23 0h12" stroke="#7b898e" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="1475" cy="256" r="8" fill="none" stroke="#8d9a9e" stroke-width="2"/><path d="m1481 262 7 7" stroke="#8d9a9e" stroke-width="2"/>
+    <path d="M1518 248v16m-8-8h16" stroke="#8d9a9e" stroke-width="2"/>
+    <path d="M1538 249h10v10" fill="none" stroke="#8d9a9e" stroke-width="2"/>
+    <g clip-path="url(#viewerClip)">
+      <rect x="1162" y="282" width="345" height="212" fill="url(#photoSky)"/>
+      <circle cx="1432" cy="323" r="24" fill="#d7f9e8" opacity=".62"/>
+      <path d="M1162 425 1228 350l58 61 60-83 72 92 45-43 44 48v69h-345Z" fill="#0b1b20"/>
+      <path d="M1162 454c86-35 156-28 220 0 48 22 83 22 125 3v37h-345Z" fill="#0e3d3d"/>
+      <path d="M1195 300c52 20 30 72 96 81s48-68 126-85" fill="none" stroke="#65e7b5" stroke-opacity=".72" stroke-width="12" stroke-linecap="round"/>
+      <path d="M1205 298c54 18 42 61 91 68 64 8 59-53 135-73" fill="none" stroke="#b6ffe1" stroke-opacity=".35" stroke-width="5" stroke-linecap="round"/>
+    </g>
+    <rect x="1162" y="511" width="72" height="26" rx="6" fill="#195842" stroke="#43cb91"/>
+    <rect x="1244" y="511" width="72" height="26" rx="6" fill="#172226"/>
+    <rect x="1326" y="511" width="72" height="26" rx="6" fill="#172226"/>
+    <rect x="1408" y="511" width="72" height="26" rx="6" fill="#172226"/>
+  </g>
+
+  <!-- Main file manager. -->
+  <g filter="url(#shadow)">
+    <rect x="348" y="70" width="904" height="500" rx="26" fill="url(#panel)" stroke="#53655e" stroke-width="1.5"/>
+    <path d="M374 70h852a26 26 0 0 1 26 26v52H348V96a26 26 0 0 1 26-26Z" fill="url(#panelHeader)"/>
+    <circle cx="382" cy="109" r="14" fill="#18372c"/>
+    <use href="#folderIcon" x="373" y="101" width="18" height="15"/>
+    <text x="410" y="116" fill="#f1f5f3" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="700">File Manager</text>
+    <path d="M1177 109h14m22-7v14m42-14-14 14m0-14 14 14" stroke="#c6cecb" stroke-width="2" stroke-linecap="round"/>
+
+    <rect x="348" y="148" width="98" height="422" fill="#11181b"/>
+    <rect x="348" y="176" width="98" height="62" fill="#17382e"/>
+    <rect x="348" y="176" width="4" height="62" rx="2" fill="#31ce8f"/>
+    <use href="#folderIcon" x="378" y="190" width="38" height="32"/>
+    <circle cx="397" cy="282" r="13" fill="none" stroke="#9ea9a6" stroke-width="2"/><path d="M397 273v10l7 4" fill="none" stroke="#9ea9a6" stroke-width="2" stroke-linecap="round"/>
+    <path d="m397 330 5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2Z" fill="none" stroke="#9ea9a6" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M386 410h22m-19-8h16l-1 27h-14Zm4 0v-6h8v6" fill="none" stroke="#9ea9a6" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="397" cy="516" r="13" fill="none" stroke="#9ea9a6" stroke-width="2"/><path d="M397 498v5m0 26v5m18-18h-5m-26 0h-5m31-13-4 4m-18 18-4 4m26 0-4-4m-18-18-4-4" stroke="#9ea9a6" stroke-width="2" stroke-linecap="round"/>
+
+    <rect x="468" y="172" width="122" height="48" rx="10" fill="url(#greenButton)"/>
+    <circle cx="490" cy="196" r="9" fill="none" stroke="#fff" stroke-width="2"/><path d="M490 191v10m-5-5h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    <text x="508" y="203" fill="#fff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="700">New</text>
+    <path d="m565 194 5 5 5-5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    <rect x="604" y="172" width="120" height="48" rx="10" fill="#20282d" stroke="#303b40"/>
+    <path d="M627 204v-20m-7 7 7-7 7 7m-15 13v6h16v-6" fill="none" stroke="#d8dfdc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="648" y="203" fill="#edf2f0" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="16" font-weight="600">Upload</text>
+    <rect x="738" y="172" width="124" height="48" rx="10" fill="#20282d" stroke="#303b40"/>
+    <path d="M772 187a10 10 0 1 0 2 14m-2-14v8h-8" fill="none" stroke="#d8dfdc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="789" y="203" fill="#edf2f0" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="16" font-weight="600">Refresh</text>
+    <rect x="1010" y="172" width="210" height="48" rx="11" fill="#151d21" stroke="#364146"/>
+    <circle cx="1037" cy="195" r="8" fill="none" stroke="#9da8a5" stroke-width="2"/><path d="m1043 201 7 7" stroke="#9da8a5" stroke-width="2"/>
+    <text x="1062" y="201" fill="#798683" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14">Search files</text>
+
+    <text x="470" y="249" fill="#79e2b6" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14" font-weight="600">Home</text>
+    <path d="m512 244 5 5-5 5" fill="none" stroke="#61706c" stroke-width="2"/>
+    <text x="528" y="249" fill="#b9c3c0" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14">Projects</text>
+    <rect x="468" y="266" width="752" height="274" rx="12" fill="#11171a" stroke="#354044"/>
+    <rect x="486" y="284" width="16" height="16" rx="4" fill="none" stroke="#697774" stroke-width="1.5"/>
+    <text x="530" y="298" fill="#7f8c89" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" letter-spacing="1">NAME</text>
+    <text x="997" y="298" fill="#7f8c89" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" letter-spacing="1">SIZE</text>
+    <path d="M468 313h752" stroke="#2c363a"/>
+
+    <g font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" fill="#dce4e1">
+      <rect x="486" y="330" width="16" height="16" rx="4" fill="none" stroke="#697774" stroke-width="1.5"/>
+      <use href="#folderIcon" x="528" y="322" width="34" height="28"/><text x="578" y="342">Images</text><text x="997" y="342" fill="#7f8c89">Folder</text>
+      <path d="M468 365h752" stroke="#293337"/>
+      <rect x="486" y="382" width="16" height="16" rx="4" fill="none" stroke="#697774" stroke-width="1.5"/>
+      <use href="#folderIcon" x="528" y="374" width="34" height="28"/><text x="578" y="394">Documents</text><text x="997" y="394" fill="#7f8c89">Folder</text>
+      <path d="M468 417h752" stroke="#293337"/>
+      <rect x="486" y="434" width="16" height="16" rx="4" fill="none" stroke="#697774" stroke-width="1.5"/>
+      <use href="#fileIcon" x="532" y="424" width="25" height="30"/><text x="578" y="446">README.md</text><text x="997" y="446" fill="#7f8c89">18 KB</text>
+      <path d="M468 469h752" stroke="#293337"/>
+      <rect x="486" y="486" width="16" height="16" rx="4" fill="none" stroke="#697774" stroke-width="1.5"/>
+      <use href="#fileIcon" x="532" y="476" width="25" height="30"/><text x="578" y="498">demo-video.mp4</text><text x="997" y="498" fill="#7f8c89">42 MB</text>
+    </g>
+    <g fill="#87938f"><circle cx="1184" cy="338" r="2.5"/><circle cx="1184" cy="342" r="2.5"/><circle cx="1184" cy="346" r="2.5"/><circle cx="1184" cy="390" r="2.5"/><circle cx="1184" cy="394" r="2.5"/><circle cx="1184" cy="398" r="2.5"/><circle cx="1184" cy="442" r="2.5"/><circle cx="1184" cy="446" r="2.5"/><circle cx="1184" cy="450" r="2.5"/><circle cx="1184" cy="494" r="2.5"/><circle cx="1184" cy="498" r="2.5"/><circle cx="1184" cy="502" r="2.5"/></g>
+  </g>
+
+  <!-- Floating capability tiles extend beyond the atmospheric plate. -->
+  <g transform="rotate(-8 108 146)" filter="url(#shadow)">
+    <rect x="58" y="92" width="118" height="118" rx="22" fill="#192126" stroke="#52615d"/>
+    <use href="#folderIcon" x="83" y="119" width="66" height="55"/>
+    <use href="#check" x="137" y="165" width="30" height="30"/>
+  </g>
+  <g transform="rotate(7 1490 151)" filter="url(#shadow)">
+    <rect x="1432" y="94" width="116" height="116" rx="22" fill="#192126" stroke="#52615d"/>
+    <rect x="1458" y="121" width="64" height="56" rx="9" fill="#36b980"/>
+    <circle cx="1506" cy="136" r="6" fill="#d2ffec"/>
+    <path d="m1465 169 17-19 12 12 10-9 14 16Z" fill="#d5f7e8"/>
+    <use href="#check" x="1506" y="165" width="30" height="30"/>
+  </g>
+  <g transform="rotate(-7 315 555)" filter="url(#shadow)">
+    <rect x="260" y="500" width="110" height="110" rx="20" fill="#192126" stroke="#52615d"/>
+    <use href="#fileIcon" x="292" y="527" width="46" height="56"/>
+    <use href="#check" x="332" y="566" width="28" height="28"/>
+  </g>
+  <g transform="rotate(7 1488 554)" filter="url(#shadow)">
+    <rect x="1433" y="499" width="110" height="110" rx="20" fill="#192126" stroke="#52615d"/>
+    <path d="M1468 524h34l18 18v42h-52Z" fill="url(#folder)"/>
+    <path d="M1502 524v18h18" fill="#a3efd0"/>
+    <text x="1477" y="570" fill="#fff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="800">ZIP</text>
+    <use href="#check" x="1505" y="566" width="28" height="28"/>
+  </g>
+</svg>

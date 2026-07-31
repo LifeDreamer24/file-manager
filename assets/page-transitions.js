@@ -16,6 +16,32 @@
     return Boolean(document.querySelector("main.login-wrap, main.wrap"));
   }
 
+  function restoreHomepageAnchor() {
+    if (!document.querySelector("main.home-shell") || !location.hash) return;
+
+    let targetId = location.hash.slice(1);
+    try {
+      targetId = decodeURIComponent(targetId);
+    } catch {
+      // Keep the literal hash when it is not valid encoded text.
+    }
+
+    const target = document.getElementById(targetId);
+    if (!target) return;
+
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = "auto";
+    target.scrollIntoView({ block: "start" });
+    root.style.scrollBehavior = previousScrollBehavior;
+  }
+
+  function scheduleHomepageAnchorRestore() {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(restoreHomepageAnchor);
+    });
+  }
+
   function finishEntrance() {
     document.body.classList.remove("page-entering", "page-enter-active");
   }
@@ -110,11 +136,23 @@
   });
 
   window.addEventListener("pageshow", (event) => {
-    if (event.persisted) enterPage();
+    if (event.persisted) {
+      enterPage();
+      scheduleHomepageAnchorRestore();
+    }
   });
+  window.addEventListener("load", scheduleHomepageAnchorRestore, { once: true });
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", enterPage, { once: true });
+    document.addEventListener(
+      "DOMContentLoaded",
+      () => {
+        enterPage();
+        scheduleHomepageAnchorRestore();
+      },
+      { once: true },
+    );
   } else {
     enterPage();
+    scheduleHomepageAnchorRestore();
   }
 })();

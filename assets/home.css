@@ -15,7 +15,7 @@ body:has(> .home-shell) {
 }
 
 .home-shell {
-  width: min(1180px, calc(100% - 40px));
+  width: min(1320px, calc(100% - 40px));
   margin: 0 auto;
   padding: 26px 0 34px;
 }

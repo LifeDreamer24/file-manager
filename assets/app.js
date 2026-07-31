@@ -26,6 +26,12 @@ const state = {
   previewTimer: null,
   media: null,
   mediaReturnFocus: null,
+  image: null,
+  imageReturnFocus: null,
+  imageZoom: 1,
+  imageRotation: 0,
+  imageBaseWidth: 0,
+  imageBaseHeight: 0,
 };
 const csrfToken =
   document.querySelector('meta[name="csrf-token"]')?.content || "";
@@ -79,6 +85,16 @@ const mediaModal = $("mediaModal"),
   audioArtwork = $("audioArtwork"),
   audioPlayer = $("audioPlayer"),
   videoPlayer = $("videoPlayer");
+const imageModal = $("imageModal"),
+  imageStage = $("imageStage"),
+  imageCanvas = $("imageCanvas"),
+  imagePreview = $("imagePreview"),
+  imageTitle = $("imageTitle"),
+  imagePath = $("imagePath"),
+  imageMessage = $("imageMessage"),
+  imageFormat = $("imageFormat"),
+  imageZoomLabel = $("imageZoomLabel"),
+  imageDownload = $("imageDownload");
 
 function cleanPath(path) {
   return String(path || "")
@@ -127,6 +143,11 @@ function fileDownloadUrl(item) {
 function fileStreamUrl(item) {
   return absoluteUrl(
     item.stream_url || apiUrl("stream", { path: item.path }).toString(),
+  );
+}
+function imagePreviewUrl(item) {
+  return absoluteUrl(
+    item.preview_url || item.stream_url || apiUrl("stream", { path: item.path }).toString(),
   );
 }
 async function apiGet(action, params = {}) {
@@ -398,15 +419,21 @@ function renderRow(item) {
     click = `href="?path=${encodeURIComponent(item.path)}" data-open-action="folder"`;
   } else {
     const downloadUrl = fileDownloadUrl(item);
+    const viewable = Boolean(item.image_type);
     const playable = item.media_type && browserCanPlayMedia(item);
+    const viewAction = viewable
+      ? `<button class="action" type="button" data-item-action="view">View</button>`
+      : "";
     const playAction = playable
       ? `<button class="action" type="button" data-item-action="play">Play</button>`
       : "";
     actions = itemMenu(
       item.name,
-      `${playAction}<a class="action" href="${escapeAttr(downloadUrl)}" download="${escapeAttr(item.download_name || item.name)}">Download</a><button class="action" type="button" data-item-action="move">Move</button><button class="action" type="button" data-item-action="rename">Rename</button>${item.extractable ? `<button class="action" type="button" data-item-action="extract">Extract</button>` : ""}<button class="action" type="button" data-item-action="copy">Copy URL</button><button class="action danger" type="button" data-item-action="delete">Delete</button>`,
+      `${viewAction}${playAction}<a class="action" href="${escapeAttr(downloadUrl)}" download="${escapeAttr(item.download_name || item.name)}">Download</a><button class="action" type="button" data-item-action="move">Move</button><button class="action" type="button" data-item-action="rename">Rename</button>${item.extractable ? `<button class="action" type="button" data-item-action="extract">Extract</button>` : ""}<button class="action" type="button" data-item-action="copy">Copy URL</button><button class="action danger" type="button" data-item-action="delete">Delete</button>`,
     );
-    click = playable
+    click = viewable
+      ? `href="#" data-open-action="image" class="name file-name"`
+      : playable
       ? `href="#" data-open-action="media" class="name file-name"`
       : item.editable
         ? `href="#" data-open-action="edit" class="name file-name"`
@@ -1593,6 +1620,107 @@ function handleMediaError(event) {
   mediaMessage.hidden = false;
 }
 
+function imageItem(path) {
+  const item = state.entries.find((entry) => entry.path === path) || null;
+  return item?.image_type ? item : null;
+}
+function updateImageTransform() {
+  if (!state.image || !state.imageBaseWidth || !state.imageBaseHeight) return;
+  const width = Math.max(1, state.imageBaseWidth * state.imageZoom);
+  const height = Math.max(1, state.imageBaseHeight * state.imageZoom);
+  const sideways = Math.abs(state.imageRotation % 180) === 90;
+  imageCanvas.style.width = `${sideways ? height : width}px`;
+  imageCanvas.style.height = `${sideways ? width : height}px`;
+  imagePreview.style.width = `${width}px`;
+  imagePreview.style.height = `${height}px`;
+  imagePreview.style.transform = `translate(-50%, -50%) rotate(${state.imageRotation}deg)`;
+  imageZoomLabel.textContent = `${Math.round(state.imageZoom * 100)}%`;
+}
+function fitImageToStage() {
+  if (!state.image || !imagePreview.naturalWidth || !imagePreview.naturalHeight) return;
+  const availableWidth = Math.max(120, imageStage.clientWidth - 44);
+  const availableHeight = Math.max(120, imageStage.clientHeight - 44);
+  const fit = Math.min(
+    1,
+    availableWidth / imagePreview.naturalWidth,
+    availableHeight / imagePreview.naturalHeight,
+  );
+  state.imageBaseWidth = Math.max(1, imagePreview.naturalWidth * fit);
+  state.imageBaseHeight = Math.max(1, imagePreview.naturalHeight * fit);
+  updateImageTransform();
+}
+function resetImageView() {
+  state.imageZoom = 1;
+  state.imageRotation = 0;
+  fitImageToStage();
+  imageStage.scrollTo({ top: 0, left: 0 });
+}
+function changeImageZoom(multiplier) {
+  state.imageZoom = Math.min(8, Math.max(0.25, state.imageZoom * multiplier));
+  updateImageTransform();
+}
+function rotateImage(amount) {
+  state.imageRotation = (state.imageRotation + amount + 360) % 360;
+  updateImageTransform();
+}
+function openImage(path, trigger = null) {
+  const item = imageItem(path);
+  if (!item) {
+    toast("This file cannot be viewed as an image.");
+    return;
+  }
+  state.image = item;
+  state.imageReturnFocus = trigger || document.activeElement;
+  state.imageZoom = 1;
+  state.imageRotation = 0;
+  state.imageBaseWidth = 0;
+  state.imageBaseHeight = 0;
+  imageTitle.textContent = item.name;
+  imagePath.textContent = item.path;
+  imageFormat.textContent = `${extension(item.name).toUpperCase()} image`;
+  imageDownload.href = fileDownloadUrl(item);
+  imageDownload.download = item.download_name || item.name;
+  imageMessage.textContent = "Loading image...";
+  imageMessage.classList.remove("error");
+  imageMessage.hidden = false;
+  imageCanvas.hidden = true;
+  imagePreview.alt = item.name;
+  imagePreview.src = imagePreviewUrl(item);
+  imageModal.classList.add("show");
+  imageModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("image-viewer-open");
+  $("imageClose").focus();
+}
+function closeImage() {
+  if (!state.image && !imageModal.classList.contains("show")) return;
+  const returnFocus = state.imageReturnFocus;
+  imagePreview.removeAttribute("src");
+  imagePreview.alt = "";
+  imageCanvas.removeAttribute("style");
+  imagePreview.removeAttribute("style");
+  state.image = null;
+  state.imageReturnFocus = null;
+  imageModal.classList.remove("show");
+  imageModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("image-viewer-open");
+  if (returnFocus && document.contains(returnFocus)) returnFocus.focus();
+}
+function handleImageReady() {
+  if (!state.image) return;
+  imageCanvas.hidden = false;
+  imageMessage.hidden = true;
+  imageMessage.classList.remove("error");
+  imageFormat.textContent = `${extension(state.image.name).toUpperCase()} image · ${imagePreview.naturalWidth} × ${imagePreview.naturalHeight}`;
+  requestAnimationFrame(resetImageView);
+}
+function handleImageError() {
+  if (!state.image) return;
+  imageCanvas.hidden = true;
+  imageMessage.textContent = "This browser could not display the image.";
+  imageMessage.classList.add("error");
+  imageMessage.hidden = false;
+}
+
 function previewKind() {
   if (!state.editing) return "";
   const ext = extension(state.editing.name || state.editing.path);
@@ -2170,7 +2298,9 @@ function fileIcon(name) {
   const ext = extension(name);
   if (["bz2", "zip", "7z", "rar"].includes(ext)) return "🗜️";
   if (["bsp", "nav"].includes(ext)) return "🗺️";
-  if (["vmt", "vtf", "png", "jpg", "jpeg", "webp", "gif"].includes(ext))
+  if (
+    ["vmt", "vtf", "png", "jpg", "jpeg", "jpe", "webp", "gif", "avif", "bmp", "dib", "ico"].includes(ext)
+  )
     return "🖼️";
   if (["wav", "mp3", "ogg", "oga", "opus", "m4a", "aac", "flac"].includes(ext)) return "🔊";
   if (["mp4", "m4v", "webm", "ogv", "mov"].includes(ext)) return "🎬";
@@ -2372,6 +2502,8 @@ content.addEventListener("click", (e) => {
     const row = open.closest("tr[data-path]");
     if (!row) return;
     if (open.dataset.openAction === "folder") openFolder(row.dataset.path);
+    else if (open.dataset.openAction === "image")
+      openImage(row.dataset.path, open);
     else if (open.dataset.openAction === "media")
       openMedia(row.dataset.path, open);
     else editFile(row.dataset.path);
@@ -2387,6 +2519,13 @@ content.addEventListener("click", (e) => {
       name = row.dataset.name,
       type = row.dataset.type;
     switch (action.dataset.itemAction) {
+      case "view":
+        openImage(
+          path,
+          action.closest(".item-menu")?.querySelector(".item-menu-toggle") ||
+            action,
+        );
+        break;
       case "play":
         openMedia(
           path,
@@ -2617,14 +2756,38 @@ $("mediaDone").addEventListener("click", closeMedia);
 mediaModal.addEventListener("click", (e) => {
   if (e.target === mediaModal) closeMedia();
 });
+$("imageClose").addEventListener("click", closeImage);
+$("imageDone").addEventListener("click", closeImage);
+$("imageZoomOut").addEventListener("click", () => changeImageZoom(0.8));
+$("imageZoomIn").addEventListener("click", () => changeImageZoom(1.25));
+$("imageRotateLeft").addEventListener("click", () => rotateImage(-90));
+$("imageRotateRight").addEventListener("click", () => rotateImage(90));
+$("imageReset").addEventListener("click", resetImageView);
+imageModal.addEventListener("click", (e) => {
+  if (e.target === imageModal) closeImage();
+});
+imagePreview.addEventListener("load", handleImageReady);
+imagePreview.addEventListener("error", handleImageError);
+window.addEventListener("resize", () => {
+  if (state.image && imagePreview.complete && imagePreview.naturalWidth) fitImageToStage();
+});
 [audioPlayer, videoPlayer].forEach((player) => {
   player.addEventListener("loadedmetadata", handleMediaReady);
   player.addEventListener("canplay", handleMediaReady);
   player.addEventListener("error", handleMediaError);
 });
 window.addEventListener("keydown", (e) => {
+  if (state.image && ["+", "=", "-", "0", "r", "R"].includes(e.key)) {
+    e.preventDefault();
+    if (["+", "="].includes(e.key)) changeImageZoom(1.25);
+    else if (e.key === "-") changeImageZoom(0.8);
+    else if (e.key === "0") resetImageView();
+    else rotateImage(90);
+    return;
+  }
   if (e.key !== "Escape") return;
-  if (state.media) closeMedia();
+  if (state.image) closeImage();
+  else if (state.media) closeMedia();
   else if (state.conflictResolver) closeConflictModal(null);
   else if (state.movePicker) closeMovePicker();
   else if (editorToolsMenuGroup.classList.contains("open"))

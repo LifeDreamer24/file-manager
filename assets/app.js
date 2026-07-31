@@ -191,7 +191,11 @@ async function waitForAnimation(animation) {
 function folderFadeTarget() {
   return content.querySelector(".file-table tbody") || content;
 }
-async function loadFolder(showToast = false, transition = false) {
+async function loadFolder(
+  showToast = false,
+  transition = false,
+  preserveCurrentStatus = false,
+) {
   const sequence = ++folderLoadSequence;
   const keepCurrentContent = transition && content.hasChildNodes();
   const animateChange = keepCurrentContent && !folderMotionMedia.matches;
@@ -202,8 +206,10 @@ async function loadFolder(showToast = false, transition = false) {
 
   if (keepCurrentContent) {
     renderBreadcrumbs();
-    hideSelectionBar();
-    stats.textContent = "Loading...";
+    if (!preserveCurrentStatus) {
+      hideSelectionBar();
+      stats.textContent = "Loading...";
+    }
     content.classList.add("folder-loading");
   } else {
     renderLoading();
@@ -2466,7 +2472,9 @@ window.addEventListener("drop", async (e) => {
   const files = await filesFromDropEvent(e);
   uploadFiles(files);
 });
-$("refreshIndex").addEventListener("click", () => loadFolder(true));
+$("refreshIndex").addEventListener("click", () =>
+  loadFolder(true, true, true),
+);
 $("saveFile").addEventListener("click", saveFile);
 $("downloadEditor").addEventListener("click", downloadEditor);
 previewFile.addEventListener("click", togglePreview);

@@ -817,6 +817,27 @@ body.light .home-cta {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  body.page-entering > main {
+    animation: pageFadeIn 170ms ease-out both;
+  }
+
+  body.page-leaving > main {
+    pointer-events: none;
+    animation: pageFadeOut 140ms ease-in both;
+  }
+
+  .media-modal.show .media-card,
+  .editor-modal.show .editor-shell {
+    animation: previewCardIn 170ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .image-modal.show .image-canvas:not([hidden]),
+  .media-modal.show .media-stage video:not([hidden]),
+  .media-modal.show .media-stage audio:not([hidden]),
+  .media-modal.show .audio-artwork:not([hidden]) {
+    animation: previewContentIn 170ms ease-out both;
+  }
+
   .home-hero-copy {
     animation: homeRise 0.55s ease both;
   }
@@ -829,5 +850,24 @@ body.light .home-cta {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
   }
-}
 
+  @keyframes pageFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes pageFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  @keyframes previewCardIn {
+    from { opacity: 0; transform: scale(0.985); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes previewContentIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}

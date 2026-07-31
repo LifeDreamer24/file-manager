@@ -188,6 +188,9 @@ async function waitForAnimation(animation) {
     // A newer folder request cancelled this transition.
   }
 }
+function folderFadeTarget() {
+  return content.querySelector(".file-table tbody") || content;
+}
 async function loadFolder(showToast = false, transition = false) {
   const sequence = ++folderLoadSequence;
   const keepCurrentContent = transition && content.hasChildNodes();
@@ -213,7 +216,7 @@ async function loadFolder(showToast = false, transition = false) {
     const previousPanelHeight = appWrap?.getBoundingClientRect().height || 0;
 
     if (animateChange) {
-      folderContentAnimation = content.animate(
+      folderContentAnimation = folderFadeTarget().animate(
         [{ opacity: 1 }, { opacity: 0 }],
         {
           duration: 140,
@@ -233,7 +236,7 @@ async function loadFolder(showToast = false, transition = false) {
       const nextPanelHeight = appWrap?.getBoundingClientRect().height || 0;
 
       folderContentAnimation?.cancel();
-      folderContentAnimation = content.animate(
+      folderContentAnimation = folderFadeTarget().animate(
         [{ opacity: 0 }, { opacity: 1 }],
         {
           duration: 170,

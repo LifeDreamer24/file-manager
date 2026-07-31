@@ -97,6 +97,26 @@ try {
     check($skipAction === 'skip', 'skip conflict policy preserves existing file');
     check($replaceAction === 'write' && $replacePath === $file, 'replace policy targets the existing file');
     check($keepAction === 'write' && $keepPath !== $file, 'keep-both policy creates a distinct destination');
+
+    $archive = $root . DIRECTORY_SEPARATOR . 'selected-items.zip';
+    file_put_contents($archive, 'test archive placeholder');
+    $planned = [];
+    $newEntryConflicts = zip_destination_conflicts(
+        $root . DIRECTORY_SEPARATOR . 'selected-items',
+        'selected-items',
+        [['safe' => 'new-file.txt', 'dir' => false]],
+        $planned
+    );
+    check($newEntryConflicts === [], 'the ZIP file itself does not trigger an extraction conflict');
+
+    $planned = [];
+    $existingEntryConflicts = zip_destination_conflicts(
+        $root,
+        '',
+        [['safe' => 'example.txt', 'dir' => false]],
+        $planned
+    );
+    check($existingEntryConflicts === ['example.txt'], 'an archived file reports a real destination conflict');
 } finally {
     cleanup_test_tree($root);
     cleanup_test_tree($outside);

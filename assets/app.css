@@ -3561,13 +3561,15 @@ body.light .toolbar input[type="search"] {
     rgba(255, 255, 255, 0.62);
 }
 .editor-head,
-.media-head {
+.media-head,
+.conflict-card .move-head {
   position: relative;
   overflow: hidden;
   isolation: isolate;
 }
 .editor-head::before,
 .media-head::before,
+.conflict-card .move-head::before,
 .upload-overlay-card::before {
   content: "";
   position: absolute;
@@ -3599,9 +3601,13 @@ body.light .toolbar input[type="search"] {
 }
 .editor-head > *,
 .media-head > *,
+.conflict-card .move-head > *,
 .upload-overlay-card > * {
   position: relative;
   z-index: 1;
+}
+.conflict-card .move-head::before {
+  width: 62%;
 }
 .upload-overlay-card::before {
   width: 72%;

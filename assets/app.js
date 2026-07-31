@@ -496,9 +496,37 @@ async function extractSelected() {
     toast("A ZIP extraction is already in progress.");
     return;
   }
-  const policy = await chooseConflictPolicy(
-    `Choose how existing items should be handled while extracting ${items.length} archive${items.length === 1 ? "" : "s"}.`,
-  );
+  await extractWithConflictCheck(items);
+}
+
+async function extractWithConflictCheck(items) {
+  extractionInProgress = true;
+  setUploadControlsDisabled(true);
+  let policy = null;
+  try {
+    const preflight = await apiPost("extract_conflicts", {
+      paths: items.map((item) => item.path),
+    });
+    const conflicts = Array.isArray(preflight.conflicts)
+      ? preflight.conflicts
+      : [];
+    if (conflicts.length) {
+      const names = conflicts.slice(0, 5).join(", ");
+      const more = conflicts.length > 5 ? ", ..." : "";
+      policy = await chooseConflictPolicy(
+        `${conflicts.length} archived item${conflicts.length === 1 ? "" : "s"} already ${conflicts.length === 1 ? "exists" : "exist"}: ${names}${more}`,
+      );
+    } else {
+      policy = "skip";
+    }
+  } catch (error) {
+    toast(error.message || String(error));
+  } finally {
+    if (!policy) {
+      extractionInProgress = false;
+      setUploadControlsDisabled(false);
+    }
+  }
   if (!policy) return;
   await extractArchivesWithProgress(items, policy);
 }
@@ -1072,11 +1100,7 @@ async function extractArchive(path) {
     toast("A ZIP extraction is already in progress.");
     return;
   }
-  const policy = await chooseConflictPolicy(
-    `Choose how existing items should be handled while extracting ${path}.`,
-  );
-  if (!policy) return;
-  await extractArchivesWithProgress([{ path }], policy);
+  await extractWithConflictCheck([{ path }]);
 }
 async function createItem(type) {
   const label = type === "dir" ? "folder" : "file";

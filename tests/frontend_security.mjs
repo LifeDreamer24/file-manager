@@ -94,6 +94,20 @@ assert.ok(
   "new uploads are not preemptively described as existing files",
 );
 assert.ok(
+  app.includes('apiPost("extract_conflicts"') &&
+    app.includes("extractWithConflictCheck(items)") &&
+    app.includes("if (conflicts.length)"),
+  "ZIP extraction asks for a conflict policy only after the server reports a collision",
+);
+assert.ok(
+  !app.includes("Choose how existing items should be handled while extracting"),
+  "clean ZIP archives are not preemptively described as conflicting",
+);
+assert.ok(
+  /\.conflict-card \.move-head::before\s*\{[^}]*width:\s*62%/s.test(css),
+  "the extraction conflict header uses the fading dotted treatment",
+);
+assert.ok(
   /\[hidden\]\s*\{\s*display:\s*none\s*!important;\s*\}/.test(css),
   "the hidden attribute wins over component display styles",
 );

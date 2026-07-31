@@ -817,6 +817,59 @@ function safe_zip_entry(string $entry): ?string {
     return implode('/', $parts);
 }
 
+function zip_destination_conflicts(string $target, string $targetRel, array $entries, array &$planned): array {
+    $conflicts = [];
+    $target = rtrim($target, DIRECTORY_SEPARATOR);
+    $targetRel = trim(str_replace('\\', '/', $targetRel), '/');
+
+    foreach ($entries as $entry) {
+        $safe = str_replace('\\', '/', (string)($entry['safe'] ?? ''));
+        if ($safe === '') continue;
+
+        $relativeParent = dirname($safe);
+        $parentParts = $relativeParent === '.' ? [] : explode('/', $relativeParent);
+        $cursor = $target;
+        $labelParts = [];
+
+        foreach ($parentParts as $part) {
+            if ($part === '') continue;
+            $cursor .= DIRECTORY_SEPARATOR . $part;
+            $labelParts[] = $part;
+            $label = trim(($targetRel !== '' ? $targetRel . '/' : '') . implode('/', $labelParts), '/');
+            $key = str_replace('\\', '/', $cursor);
+
+            if (is_link($cursor) || (file_exists($cursor) && !is_dir($cursor)) || (($planned[$key] ?? null) === 'file')) {
+                $conflicts[] = $label;
+            } elseif (!isset($planned[$key])) {
+                $planned[$key] = 'dir';
+            }
+        }
+
+        $dest = $target . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $safe);
+        $label = trim(($targetRel !== '' ? $targetRel . '/' : '') . $safe, '/');
+        $key = str_replace('\\', '/', $dest);
+        $isDirectory = !empty($entry['dir']);
+
+        if ($isDirectory) {
+            if (is_link($dest) || (file_exists($dest) && !is_dir($dest)) || (($planned[$key] ?? null) === 'file')) {
+                $conflicts[] = $label;
+            } elseif (!isset($planned[$key])) {
+                $planned[$key] = 'dir';
+            }
+            continue;
+        }
+
+        if (file_exists($dest) || is_link($dest) || isset($planned[$key])) {
+            $conflicts[] = $label;
+        }
+        if (!isset($planned[$key])) {
+            $planned[$key] = 'file';
+        }
+    }
+
+    return array_values(array_unique($conflicts));
+}
+
 if (defined('FILE_MANAGER_TESTING') && FILE_MANAGER_TESTING) return;
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
@@ -1110,6 +1163,125 @@ if ($action === 'upload_conflicts') {
         if (file_exists($dest) || is_link($dest)) {
             $conflicts[] = $uploadRelPath;
         }
+    }
+
+    json_response([
+        'ok' => true,
+        'conflicts' => array_values(array_unique($conflicts)),
+    ]);
+}
+
+if ($action === 'extract_conflicts') {
+    if (empty($config['allow_zip_extract'])) {
+        json_response(['ok' => false, 'error' => 'ZIP extraction is disabled.'], 403);
+    }
+    if (!class_exists('ZipArchive')) {
+        json_response(['ok' => false, 'error' => 'PHP ZipArchive extension is not installed/enabled.'], 500);
+    }
+
+    $input = json_decode(file_get_contents('php://input') ?: '{}', true);
+    if (!is_array($input)) {
+        json_response(['ok' => false, 'error' => 'Invalid JSON body.'], 400);
+    }
+    $paths = $input['paths'] ?? [];
+    if (!is_array($paths) || !$paths) {
+        json_response(['ok' => false, 'error' => 'paths must contain at least one ZIP archive.'], 400);
+    }
+
+    $maxEntries = max(1, (int)($config['max_zip_entries'] ?? 5000));
+    $maxEntrySize = max(1, (int)($config['max_zip_entry_size'] ?? 536870912));
+    $maxTotalSize = max($maxEntrySize, (int)($config['max_zip_uncompressed_size'] ?? 2147483648));
+    $maxRatio = max(1, (int)($config['max_zip_expansion_ratio'] ?? 200));
+    $conflicts = [];
+    $planned = [];
+
+    foreach ($paths as $path) {
+        $rel = clean_rel_path((string)$path);
+        $zipPath = full_path($config, $rel);
+        if (!is_file($zipPath) || extension_of($zipPath) !== 'zip') {
+            json_response(['ok' => false, 'error' => 'Only .zip files can be extracted.'], 400);
+        }
+
+        $parentRel = dirname($rel);
+        if ($parentRel === '.') $parentRel = '';
+        $parent = full_path($config, $parentRel);
+        $target = $parent;
+        $targetRel = $parentRel;
+
+        if (!empty($config['extract_zip_to_named_folder'])) {
+            $folderName = pathinfo(basename($zipPath), PATHINFO_FILENAME);
+            $folderName = clean_name($folderName ?: 'extracted');
+            [$folderAllowed, $folderReason] = entry_name_allowed($config, $folderName);
+            if (!$folderAllowed) {
+                json_response(['ok' => false, 'error' => 'Unsafe extraction folder name. ' . $folderReason], 400);
+            }
+            $target = $parent . DIRECTORY_SEPARATOR . $folderName;
+            $targetRel = trim(($parentRel ? $parentRel . '/' : '') . $folderName, '/');
+            if (file_exists($target) || is_link($target)) {
+                $conflicts[] = $targetRel;
+            }
+        }
+
+        $zip = new ZipArchive();
+        if ($zip->open($zipPath) !== true) {
+            json_response(['ok' => false, 'error' => 'Could not open ZIP archive.'], 500);
+        }
+        if ($zip->numFiles > $maxEntries) {
+            $zip->close();
+            json_response(['ok' => false, 'error' => 'ZIP contains too many entries.'], 400);
+        }
+
+        $entries = [];
+        $totalSize = 0;
+        $totalCompressed = 0;
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            $stat = $zip->statIndex($i);
+            if ($name === false || !is_array($stat)) {
+                $zip->close();
+                json_response(['ok' => false, 'error' => 'ZIP contains an unreadable entry.'], 400);
+            }
+            if (zip_entry_is_symlink($zip, $i)) {
+                $zip->close();
+                json_response(['ok' => false, 'error' => 'ZIP symbolic links are not allowed.'], 400);
+            }
+
+            $safe = safe_zip_entry($name);
+            if ($safe === null) {
+                $zip->close();
+                json_response(['ok' => false, 'error' => 'ZIP contains an unsafe path.'], 400);
+            }
+            [$allowedEntry, $entryReason] = entry_path_allowed($config, $safe);
+            if (!$allowedEntry) {
+                $zip->close();
+                json_response(['ok' => false, 'error' => 'Blocked ZIP entry "' . $safe . '". ' . $entryReason], 400);
+            }
+
+            $size = max(0, (int)($stat['size'] ?? 0));
+            $compressed = max(0, (int)($stat['comp_size'] ?? 0));
+            if ($size > $maxEntrySize) {
+                $zip->close();
+                json_response(['ok' => false, 'error' => 'ZIP entry "' . $safe . '" exceeds the extraction size limit.'], 400);
+            }
+            $totalSize += $size;
+            $totalCompressed += $compressed;
+            if ($totalSize > $maxTotalSize) {
+                $zip->close();
+                json_response(['ok' => false, 'error' => 'ZIP expanded size exceeds the extraction limit.'], 400);
+            }
+            $entries[] = ['safe' => $safe, 'dir' => str_ends_with($name, '/')];
+        }
+
+        if ($totalSize > 1024 * 1024 && $totalSize / max(1, $totalCompressed) > $maxRatio) {
+            $zip->close();
+            json_response(['ok' => false, 'error' => 'ZIP expansion ratio is too high.'], 400);
+        }
+        $zip->close();
+
+        $conflicts = array_merge(
+            $conflicts,
+            zip_destination_conflicts($target, $targetRel, $entries, $planned)
+        );
     }
 
     json_response([

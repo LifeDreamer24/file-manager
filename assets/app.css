@@ -3617,10 +3617,15 @@ button:active:not(:disabled),
 }
 
 /* Signed-in application card */
+body:has(> main.wrap) {
+  min-height: 100dvh;
+  padding: 28px 0 32px;
+}
+
 .wrap {
   box-sizing: border-box;
   width: min(1184px, calc(100% - 32px));
-  margin: 28px auto 32px;
+  margin: 0 auto;
   padding: 28px;
   border: 1px solid var(--line);
   border-radius: 20px;
@@ -3644,9 +3649,13 @@ body.light .wrap {
 }
 
 @media (max-width: 760px) {
+  body:has(> main.wrap) {
+    padding: 10px 0;
+  }
+
   .wrap {
     width: calc(100% - 20px);
-    margin: 10px auto;
+    margin: 0 auto;
     padding: 16px;
     border-radius: 18px;
     scroll-margin-top: 0;
@@ -3655,9 +3664,12 @@ body.light .wrap {
 
 @supports (padding-top: env(safe-area-inset-top)) {
   @media (max-width: 760px) {
+    body:has(> main.wrap) {
+      padding-top: calc(10px + env(safe-area-inset-top));
+      padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    }
+
     .wrap {
-      margin-top: calc(10px + env(safe-area-inset-top));
-      margin-bottom: calc(10px + env(safe-area-inset-bottom));
       padding: 16px;
     }
   }

@@ -16,8 +16,18 @@
     return Boolean(document.querySelector("main.login-wrap, main.wrap"));
   }
 
+  function isReloadNavigation() {
+    const [navigation] = performance.getEntriesByType("navigation");
+    if (navigation) return navigation.type === "reload";
+    return performance.navigation?.type === 1;
+  }
+
   function restoreHomepageAnchor() {
-    if (!document.querySelector("main.home-shell") || !location.hash) return;
+    if (!document.querySelector("main.home-shell")) return;
+    if (!location.hash) {
+      if (isReloadNavigation()) window.scrollTo(0, 0);
+      return;
+    }
 
     let targetId = location.hash.slice(1);
     try {

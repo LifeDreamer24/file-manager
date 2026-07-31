@@ -955,20 +955,9 @@ body.light td {
   border-bottom-color: rgba(215, 222, 232, 0.9);
 }
 #browserPanel .file-table th,
-#browserPanel .file-table td {
-  border-bottom-color: rgba(126, 141, 161, 0.76);
-}
-body.light #browserPanel .file-table th,
-body.light #browserPanel .file-table td {
-  border-bottom-color: rgba(156, 171, 190, 0.88);
-}
-#browserPanel .file-table thead th,
+#browserPanel .file-table td,
 #browserPanel > .pathbar {
-  border-bottom-color: rgba(126, 141, 161, 0.76);
-}
-body.light #browserPanel .file-table thead th,
-body.light #browserPanel > .pathbar {
-  border-bottom-color: rgba(156, 171, 190, 0.88);
+  border-bottom-color: var(--line);
 }
 th {
   color: var(--muted);

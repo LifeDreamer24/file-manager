@@ -1652,7 +1652,8 @@ function fitImageToStage() {
 function resetImageView() {
   state.imageZoom = 1;
   state.imageRotation = 0;
-  updateImageTransform();
+  if (state.imageBaseWidth && state.imageBaseHeight) updateImageTransform();
+  else fitImageToStage();
   imageStage.scrollTo({ top: 0, left: 0 });
 }
 function changeImageZoom(multiplier) {

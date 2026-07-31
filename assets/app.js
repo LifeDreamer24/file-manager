@@ -334,16 +334,16 @@ function selectionBarMarkup() {
   return `<div class="selection-bar-clip"><div class="bulkbar show" id="bulkbar" aria-live="polite" aria-hidden="true"><div class="bulk-summary"><strong data-selection-count>0</strong> selected</div><div class="bulk-actions"><button class="action" type="button" data-bulk-action="download">Download as ZIP</button><button class="action" type="button" data-bulk-action="copy">Copy URLs</button><button class="action" type="button" data-bulk-action="move">Move</button><button class="action" type="button" data-bulk-action="extract" disabled>Extract</button><button class="action danger" type="button" data-bulk-action="delete">Delete</button><button class="action" type="button" data-bulk-action="clear">Deselect</button></div></div></div>`;
 }
 function hideSelectionBar() {
-  if (!$("#bulkbar")) selectionBarHost.innerHTML = selectionBarMarkup();
+  if (!$("bulkbar")) selectionBarHost.innerHTML = selectionBarMarkup();
   selectionBarHost.classList.remove("show");
-  $("#bulkbar").setAttribute("aria-hidden", "true");
-  $("#bulkbar").inert = true;
+  $("bulkbar").setAttribute("aria-hidden", "true");
+  $("bulkbar").inert = true;
 }
 function updateSelectionBar() {
   const selected = selectedItems(),
     count = selected.length;
-  if (!$("#bulkbar")) selectionBarHost.innerHTML = selectionBarMarkup();
-  const bulkbar = $("#bulkbar");
+  if (!$("bulkbar")) selectionBarHost.innerHTML = selectionBarMarkup();
+  const bulkbar = $("bulkbar");
   const extractable = selected.some((i) => i.type === "file" && i.extractable);
   bulkbar.querySelector("[data-selection-count]").textContent = String(count);
   bulkbar.querySelector('[data-bulk-action="extract"]').disabled = !extractable;

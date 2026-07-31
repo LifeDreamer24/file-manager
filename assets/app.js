@@ -195,6 +195,7 @@ let folderContentAnimation = null;
 let folderPanelAnimation = null;
 let editorPreviewSequence = 0;
 let editorPreviewAnimation = null;
+const previewCloseAnimations = new WeakMap();
 
 function cancelFolderMotion() {
   folderContentAnimation?.cancel();
@@ -210,6 +211,38 @@ async function waitForAnimation(animation) {
   } catch {
     // A newer folder request cancelled this transition.
   }
+}
+async function waitForPreviewClose(modal, card) {
+  const current = previewCloseAnimations.get(modal);
+  if (current) return current;
+  if (folderMotionMedia.matches) return;
+
+  const overlayAnimation = modal.animate(
+    [{ opacity: 1 }, { opacity: 0 }],
+    {
+      duration: 170,
+      easing: "ease-in",
+      fill: "forwards",
+    },
+  );
+  const cardAnimation = card.animate(
+    [{ transform: "scale(1)" }, { transform: "scale(0.985)" }],
+    {
+      duration: 170,
+      easing: "cubic-bezier(0.4, 0, 1, 1)",
+      fill: "forwards",
+    },
+  );
+  const completion = Promise.all([
+    waitForAnimation(overlayAnimation),
+    waitForAnimation(cardAnimation),
+  ]).finally(() => {
+    overlayAnimation.cancel();
+    cardAnimation.cancel();
+    previewCloseAnimations.delete(modal);
+  });
+  previewCloseAnimations.set(modal, completion);
+  return completion;
 }
 function folderFadeTarget() {
   return content.querySelector(".file-table tbody") || content;
@@ -1601,9 +1634,13 @@ function openMedia(path, trigger = null) {
     });
   }
 }
-function closeMedia() {
+async function closeMedia() {
   if (!state.media && !mediaModal.classList.contains("show")) return;
+  if (previewCloseAnimations.has(mediaModal)) return;
   const returnFocus = state.mediaReturnFocus;
+  audioPlayer.pause();
+  videoPlayer.pause();
+  await waitForPreviewClose(mediaModal, mediaModal.querySelector(".media-card"));
   resetMediaElement(audioPlayer);
   resetMediaElement(videoPlayer);
   state.media = null;
@@ -1700,9 +1737,11 @@ function openImage(path, trigger = null) {
   document.body.classList.add("image-viewer-open");
   $("imageClose").focus();
 }
-function closeImage() {
+async function closeImage() {
   if (!state.image && !imageModal.classList.contains("show")) return;
+  if (previewCloseAnimations.has(imageModal)) return;
   const returnFocus = state.imageReturnFocus;
+  await waitForPreviewClose(imageModal, imageModal.querySelector(".image-card"));
   imagePreview.removeAttribute("src");
   imagePreview.alt = "";
   imageCanvas.removeAttribute("style");
@@ -2137,7 +2176,8 @@ function closeEditorToolsMenu() {
   editorToolsMenuGroup.classList.remove("open");
   editorToolsMenuBtn.setAttribute("aria-expanded", "false");
 }
-function closeEditor(force = false) {
+async function closeEditor(force = false) {
+  if (previewCloseAnimations.has(editorModal)) return true;
   if (
     !force &&
     state.dirty &&
@@ -2145,6 +2185,7 @@ function closeEditor(force = false) {
   )
     return false;
   const returnFocus = state.editorReturnFocus;
+  await waitForPreviewClose(editorModal, editorShell);
   setPreviewMode(false, false, false);
   state.editing = null;
   state.originalText = "";

@@ -355,6 +355,39 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
     </section>
   </div>
 
+  <div id="imageModal" class="media-modal image-modal" aria-hidden="true">
+    <section class="media-card image-card" role="dialog" aria-modal="true" aria-labelledby="imageTitle">
+      <div class="media-head image-head">
+        <div class="media-title">
+          <strong id="imageTitle">Image viewer</strong>
+          <span id="imagePath"></span>
+        </div>
+        <button id="imageClose" class="move-close" type="button" aria-label="Close image viewer"><span aria-hidden="true">×</span></button>
+      </div>
+      <div id="imageStage" class="image-stage">
+        <div id="imageCanvas" class="image-canvas">
+          <img id="imagePreview" alt="" draggable="false" />
+        </div>
+        <div id="imageMessage" class="media-message" role="status" aria-live="polite">Loading image...</div>
+      </div>
+      <div class="image-foot">
+        <span id="imageFormat" class="media-format"></span>
+        <div class="image-controls" role="group" aria-label="Image controls">
+          <button id="imageZoomOut" class="action image-control" type="button" aria-label="Zoom out" title="Zoom out">−</button>
+          <span id="imageZoomLabel" class="image-zoom-label" aria-live="polite">100%</span>
+          <button id="imageZoomIn" class="action image-control" type="button" aria-label="Zoom in" title="Zoom in">+</button>
+          <button id="imageRotateLeft" class="action image-control" type="button" aria-label="Rotate left" title="Rotate left">↶</button>
+          <button id="imageRotateRight" class="action image-control" type="button" aria-label="Rotate right" title="Rotate right">↷</button>
+          <button id="imageReset" class="action" type="button">Reset</button>
+        </div>
+        <div class="media-actions image-actions">
+          <a id="imageDownload" class="action" href="#" download>Download</a>
+          <button id="imageDone" class="action" type="button">Close</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
   <script src="assets/app.js?v=<?= $jsVersion ?>" defer></script>
   <script src="assets/disk-usage.js?v=<?= $diskUsageJsVersion ?>" defer></script>
 <?php endif; ?>

@@ -110,7 +110,7 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
   <link rel="stylesheet" href="assets/disk-usage.css?v=<?= $diskUsageCssVersion ?>" />
   <script src="assets/page-transitions.js?v=<?= $pageTransitionsJsVersion ?>" defer></script>
 </head>
-<body>
+<body class="page-entering">
 <?php if (!$loggedIn): ?>
   <script src="assets/login-theme.js?v=<?= $loginThemeJsVersion ?>"></script>
 <?php if ($showLogin): ?>

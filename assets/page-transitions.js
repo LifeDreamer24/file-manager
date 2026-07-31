@@ -4,6 +4,10 @@
   let navigating = false;
   let restoreTimer = null;
 
+  function entranceCleanupDelay() {
+    return document.querySelector("main.login-wrap, main.wrap") ? 320 : 190;
+  }
+
   function enterPage() {
     clearTimeout(restoreTimer);
     navigating = false;
@@ -15,7 +19,7 @@
     if (document.body.classList.contains("page-entering")) {
       window.setTimeout(
         () => document.body.classList.remove("page-entering"),
-        190,
+        entranceCleanupDelay(),
       );
       return;
     }
@@ -24,7 +28,7 @@
       document.body.classList.add("page-entering");
       window.setTimeout(
         () => document.body.classList.remove("page-entering"),
-        190,
+        entranceCleanupDelay(),
       );
     });
   }

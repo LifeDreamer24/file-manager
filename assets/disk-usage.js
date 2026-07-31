@@ -29,19 +29,19 @@
       }
 
       const percentage = Math.max(0, Math.min(100, Number(data.percentage) || 0));
-      detail.textContent = `${data.uploaded_label} in uploaded files · ${percentage}% of ${data.total_label}`;
+      detail.textContent = `${data.uploaded_label} · ${percentage}% of ${data.total_label}`;
       bar.style.width = `${percentage}%`;
       track.setAttribute("aria-valuenow", String(percentage));
       track.setAttribute(
         "aria-label",
-        `Uploaded files use ${data.uploaded_label}, ${percentage}% of ${data.total_label}`,
+        `Storage usage: ${data.uploaded_label}, ${percentage}% of ${data.total_label}`,
       );
 
       storage.classList.toggle("warning", percentage >= 85 && percentage < 95);
       storage.classList.toggle("critical", percentage >= 95);
     } catch (error) {
       if (error.name === "AbortError") return;
-      detail.textContent = "Uploaded-file usage unavailable";
+      detail.textContent = "Storage usage unavailable";
       bar.style.width = "0%";
       track.setAttribute("aria-valuenow", "0");
       storage.classList.remove("warning", "critical");

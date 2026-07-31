@@ -153,7 +153,7 @@ header {
 h1 {
   margin: 0 0 8px;
   font-size: clamp(1.8rem, 4vw, 3.15rem);
-  line-height: 1;
+  line-height: 1.08;
   letter-spacing: -0.045em;
   color: var(--text);
   background: linear-gradient(105deg, var(--text) 12%, var(--accent2) 92%);
@@ -2290,7 +2290,7 @@ body.light .move-list {
   }
   h1 {
     font-size: clamp(2rem, 10vw, 2.55rem);
-    line-height: 1.04;
+    line-height: 1.08;
     letter-spacing: -0.04em;
     overflow-wrap: anywhere;
     padding-top: 0;

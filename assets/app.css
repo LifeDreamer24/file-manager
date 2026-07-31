@@ -37,7 +37,9 @@ body.light {
   --line: #d7dee8;
   --accent2: #107a55;
   --soft: rgba(66, 211, 146, 0.16);
-  --goodsoft: rgba(16, 122, 85, 0.18);
+  --goodsoft: rgba(66, 211, 146, 0.18);
+  --button-border: rgba(16, 122, 85, 0.34);
+  --button-surface: rgba(66, 211, 146, 0.18);
   --name-hover: #087a55;
   --shadow: 0 18px 45px rgba(31, 41, 55, 0.12);
   --dot: rgba(16, 122, 85, 0.32);
@@ -200,8 +202,8 @@ body.light .badge {
   outline: 0;
 }
 body.light .theme-toggle {
-  border-color: rgba(16, 122, 85, 0.34);
-  background: rgba(16, 122, 85, 0.09);
+  border-color: var(--button-border);
+  background: var(--button-surface);
 }
 .login-pill {
   display: inline-flex;
@@ -251,8 +253,8 @@ body.light .login-pill {
   outline: 0;
 }
 body.light .logout-icon {
-  border-color: rgba(16, 122, 85, 0.34);
-  background: rgba(16, 122, 85, 0.09);
+  border-color: var(--button-border);
+  background: var(--button-surface);
 }
 .icon-btn {
   width: 42px;
@@ -334,8 +336,8 @@ body.light .dropdown-menu {
 }
 body.light .dropdown-menu button {
   color: #111827;
-  border-color: rgba(16, 122, 85, 0.34);
-  background: rgba(16, 122, 85, 0.09);
+  border-color: var(--button-border);
+  background: var(--button-surface);
 }
 body.light .dropdown-menu button:hover,
 body.light .dropdown-menu button:focus {
@@ -422,8 +424,8 @@ body.light select {
   background: rgba(255, 255, 255, 0.74);
 }
 body.light button {
-  border-color: rgba(16, 122, 85, 0.34);
-  background: rgba(16, 122, 85, 0.09);
+  border-color: var(--button-border);
+  background: var(--button-surface);
 }
 input:focus,
 select:focus,
@@ -441,8 +443,8 @@ button:focus:not(:focus-visible):not(:hover) {
   box-shadow: none;
 }
 body.light button:focus:not(:focus-visible):not(:hover) {
-  border-color: rgba(16, 122, 85, 0.34);
-  background: rgba(16, 122, 85, 0.09);
+  border-color: var(--button-border);
+  background: var(--button-surface);
 }
 input,
 select,
@@ -669,8 +671,8 @@ body.light .editor-head {
   background: transparent;
 }
 body.light .breadcrumbs button {
-  border-color: rgba(16, 122, 85, 0.34);
-  background: rgba(16, 122, 85, 0.09);
+  border-color: var(--button-border);
+  background: var(--button-surface);
 }
 .sep {
   color: #5e6977;
@@ -1076,8 +1078,8 @@ tbody tr:hover {
   font-size: 0.88rem;
 }
 body.light .action {
-  border-color: rgba(16, 122, 85, 0.34);
-  background: rgba(16, 122, 85, 0.09);
+  border-color: var(--button-border);
+  background: var(--button-surface);
 }
 .action:hover,
 .action:focus-visible {
@@ -1115,8 +1117,8 @@ body.light .action {
   color: var(--text);
 }
 body.light .item-menu-toggle {
-  border-color: rgba(16, 122, 85, 0.44);
-  background: rgba(16, 122, 85, 0.12);
+  border-color: var(--button-border);
+  background: var(--button-surface);
 }
 .item-menu-toggle:hover {
   transform: none;
@@ -1177,8 +1179,8 @@ body.light .item-menu-list {
 body.light .item-menu-list .action,
 body.light .item-menu-list button {
   color: #111827;
-  border-color: rgba(16, 122, 85, 0.34);
-  background: rgba(16, 122, 85, 0.09);
+  border-color: var(--button-border);
+  background: var(--button-surface);
 }
 .message {
   padding: 34px 20px;
@@ -2313,8 +2315,8 @@ body.light .move-browse {
   background: rgba(255, 255, 255, 0.035);
 }
 body.light .move-path button {
-  border-color: rgba(16, 122, 85, 0.34);
-  background: rgba(16, 122, 85, 0.09);
+  border-color: var(--button-border);
+  background: var(--button-surface);
 }
 .move-current {
   display: flex;

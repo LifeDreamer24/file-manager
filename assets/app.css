@@ -2052,6 +2052,9 @@ body.light .image-stage {
   flex: 0 0 auto;
   min-width: 1px;
   min-height: 1px;
+  transition:
+    width 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .image-canvas[hidden] {
   display: none;
@@ -2065,7 +2068,10 @@ body.light .image-stage {
   max-height: none;
   object-fit: contain;
   transform-origin: center;
-  transition: width 0.16s ease, height 0.16s ease, transform 0.16s ease;
+  transition:
+    width 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
   user-select: none;
   -webkit-user-drag: none;
 }
@@ -2149,6 +2155,7 @@ body.light .image-foot {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .image-canvas,
   .image-canvas img {
     transition: none;
   }

@@ -188,7 +188,7 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
           <strong id="uploadProgressLabel" class="upload-progress-label">Preparing upload...</strong>
           <span id="uploadProgressPercent" class="upload-progress-percent">0%</span>
         </div>
-        <div id="uploadProgressTrack" class="upload-progress-track" role="progressbar" aria-label="Upload progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="uploadProgressTrack" class="upload-progress-track" role="progressbar" aria-label="File operation progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
           <div id="uploadProgressBar" class="upload-progress-bar"></div>
         </div>
         <div id="uploadProgressDetail" class="upload-progress-detail"></div>

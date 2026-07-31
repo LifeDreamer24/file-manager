@@ -8,6 +8,7 @@
   --line: #303847;
   --accent: #42d392;
   --accent2: #8ff0c1;
+  --title: #aaf1cd;
   --name-hover: #8ff0c1;
   --soft: rgba(66, 211, 146, 0.14);
   --good: #42d392;
@@ -37,6 +38,7 @@ body.light {
   --muted: #667085;
   --line: #d7dee8;
   --soft: rgba(66, 211, 146, 0.16);
+  --title: #187554;
   --name-hover: #087a55;
   --shadow: 0 18px 45px rgba(31, 41, 55, 0.12);
   --dot: rgba(35, 146, 105, 0.2);
@@ -148,7 +150,7 @@ h1 {
   font-size: clamp(1.8rem, 4vw, 3.15rem);
   line-height: 1.12;
   letter-spacing: -0.045em;
-  color: var(--text);
+  color: var(--title);
   background: none;
   -webkit-text-fill-color: currentColor;
   filter: none;
@@ -865,6 +867,8 @@ tbody tr.selected {
   background: rgba(23, 26, 33, 0.86);
   box-shadow: var(--shadow);
   text-align: center;
+  overflow: hidden;
+  isolation: isolate;
 }
 body.light .upload-overlay {
   background: rgba(244, 246, 250, 0.58);
@@ -952,11 +956,11 @@ body.light td {
 }
 #browserPanel .file-table th,
 #browserPanel .file-table td {
-  border-bottom-color: rgba(92, 106, 125, 0.72);
+  border-bottom-color: rgba(126, 141, 161, 0.76);
 }
 body.light #browserPanel .file-table th,
 body.light #browserPanel .file-table td {
-  border-bottom-color: rgba(190, 201, 215, 0.98);
+  border-bottom-color: rgba(156, 171, 190, 0.88);
 }
 #browserPanel .file-table thead th,
 #browserPanel > .pathbar {
@@ -3563,7 +3567,8 @@ body.light .toolbar input[type="search"] {
   isolation: isolate;
 }
 .editor-head::before,
-.media-head::before {
+.media-head::before,
+.upload-overlay-card::before {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
@@ -3593,9 +3598,13 @@ body.light .toolbar input[type="search"] {
   opacity: 0.9;
 }
 .editor-head > *,
-.media-head > * {
+.media-head > *,
+.upload-overlay-card > * {
   position: relative;
   z-index: 1;
+}
+.upload-overlay-card::before {
+  width: 72%;
 }
 
 #browserPanel::before,

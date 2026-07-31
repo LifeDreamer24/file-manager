@@ -488,26 +488,83 @@ async function extractSelected() {
     toast("No selected ZIP archives.");
     return;
   }
+  if (uploadInProgress) {
+    toast("Wait for the current upload to finish before extracting.");
+    return;
+  }
+  if (extractionInProgress) {
+    toast("A ZIP extraction is already in progress.");
+    return;
+  }
   const policy = await chooseConflictPolicy(
     `Choose how existing items should be handled while extracting ${items.length} archive${items.length === 1 ? "" : "s"}.`,
   );
   if (!policy) return;
+  await extractArchivesWithProgress(items, policy);
+}
+
+async function extractArchivesWithProgress(items, policy) {
+  extractionInProgress = true;
+  setUploadControlsDisabled(true);
+  setProgressOperation("extract");
+  uploadCancel.hidden = true;
+  uploadRetry.hidden = true;
   let ok = 0,
-    errors = [];
-  for (const item of items) {
-    try {
-      await apiPost("extract", { path: item.path, conflict: policy });
-      ok++;
-    } catch (e) {
-      errors.push(`${item.path}: ${e.message || String(e)}`);
+    errors = [],
+    results = [];
+  try {
+    for (const [index, item] of items.entries()) {
+      showUploadProgress(
+        items.length === 1 ? null : (index / items.length) * 100,
+        items.length === 1
+          ? "Extracting ZIP archive..."
+          : `Extracting archive ${index + 1} of ${items.length}...`,
+        item.path,
+      );
+      try {
+        const data = await apiPost("extract", {
+          path: item.path,
+          conflict: policy,
+        });
+        results.push(data);
+        ok++;
+      } catch (e) {
+        errors.push(`${item.path}: ${e.message || String(e)}`);
+      }
     }
+    const skipped = results.reduce(
+      (total, result) => total + Number(result?.skipped || 0),
+      0,
+    );
+    const detail = errors.length
+      ? `Extracted ${ok}; failed ${errors.length}. ${errors[0]}`
+      : items.length === 1
+        ? results[0]?.message || "Extraction complete."
+        : `Extracted ${ok} archive${ok === 1 ? "" : "s"}${skipped ? `; skipped ${skipped} item${skipped === 1 ? "" : "s"}` : ""}.`;
+    const status = errors.length
+      ? ok
+        ? "partial"
+        : "error"
+      : skipped
+        ? "partial"
+        : "";
+    showUploadProgress(
+      100,
+      errors.length
+        ? ok
+          ? "Extraction finished with errors"
+          : "Extraction failed"
+        : "Extraction complete",
+      detail,
+      status,
+    );
+    toast(detail);
+    hideUploadProgress(errors.length || skipped ? 5000 : 2500);
+    await loadFolder();
+  } finally {
+    extractionInProgress = false;
+    setUploadControlsDisabled(false);
   }
-  toast(
-    errors.length
-      ? `Extracted ${ok}; failed ${errors.length}: ${errors[0]}`
-      : `Extracted ${ok} archive${ok === 1 ? "" : "s"}.`,
-  );
-  await loadFolder();
 }
 
 function simpleUploadReason(reason) {
@@ -559,6 +616,7 @@ function fileRelativePath(file) {
   return file.relativePath || file.webkitRelativePath || file.name;
 }
 let uploadInProgress = false,
+  extractionInProgress = false,
   uploadProgressTimer = 0,
   uploadProgressTransitionTimer = 0;
 function setUploadControlsDisabled(disabled) {
@@ -585,6 +643,13 @@ function setUploadProgressVisible(visible) {
   uploadProgressTransitionTimer = setTimeout(
     () => browserPanel.classList.remove("upload-progress-changing"),
     reducedMotion ? 0 : 320,
+  );
+}
+function setProgressOperation(operation) {
+  uploadProgress.dataset.operation = operation;
+  uploadProgressTrack.setAttribute(
+    "aria-label",
+    operation === "extract" ? "ZIP extraction progress" : "Upload progress",
   );
 }
 function showUploadProgress(percent, label, detail = "", status = "") {
@@ -720,6 +785,10 @@ function uploadRequest(file, policy, onProgress) {
 async function uploadFiles(files, presetPolicy = null) {
   files = [...files];
   if (!files.length) return;
+  if (extractionInProgress) {
+    toast("Wait for the current ZIP extraction to finish before uploading.");
+    return;
+  }
   if (uploadInProgress) {
     toast("An upload is already in progress.");
     return;
@@ -758,6 +827,7 @@ async function uploadFiles(files, presetPolicy = null) {
   state.failedUploads = [];
   state.uploadFailures = [];
   state.lastConflictPolicy = policy;
+  setProgressOperation("upload");
   setUploadControlsDisabled(true);
   uploadCancel.disabled = false;
   uploadCancel.textContent = "Cancel";
@@ -994,17 +1064,19 @@ async function renameItem(path, name) {
   }
 }
 async function extractArchive(path) {
+  if (uploadInProgress) {
+    toast("Wait for the current upload to finish before extracting.");
+    return;
+  }
+  if (extractionInProgress) {
+    toast("A ZIP extraction is already in progress.");
+    return;
+  }
   const policy = await chooseConflictPolicy(
     `Choose how existing items should be handled while extracting ${path}.`,
   );
   if (!policy) return;
-  try {
-    const data = await apiPost("extract", { path, conflict: policy });
-    toast(data.message || "Extracted.");
-    await loadFolder();
-  } catch (e) {
-    toast(e.message || String(e));
-  }
+  await extractArchivesWithProgress([{ path }], policy);
 }
 async function createItem(type) {
   const label = type === "dir" ? "folder" : "file";

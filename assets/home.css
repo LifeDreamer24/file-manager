@@ -162,8 +162,8 @@ body:has(> .home-shell) {
 
 body.light .home-button-secondary,
 body.light .home-button-small {
-  border-color: rgba(16, 122, 85, 0.34);
-  background: rgba(16, 122, 85, 0.09);
+  border-color: var(--button-border);
+  background: var(--button-surface);
 }
 
 .home-hero {

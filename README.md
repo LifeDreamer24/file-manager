@@ -4,8 +4,9 @@ A polished, self-hosted file manager for browsing and managing one server direct
 
 The project uses PHP, vanilla JavaScript, and CSS. It has no database, framework, package installation, or frontend build step, making it suitable for straightforward deployment on conventional PHP hosting.
 
-<img width="2560" height="1440" alt="image" src="https://github.com/user-attachments/assets/8eb3f60f-cd12-4993-8407-7db79d30bb0c" />
-<img width="2560" height="1440" alt="image" src="https://github.com/user-attachments/assets/56d0cb03-bce4-478a-8a7b-328ee0ed9ab1" />
+<p align="center">
+  <img src="assets/readme-preview.svg" alt="File Manager interface with text editor and image viewer previews" width="1600" />
+</p>
 
 ## Current feature set
 

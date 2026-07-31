@@ -1,4 +1,14 @@
 /* Public homepage */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body:has(> .home-shell) {
   min-height: 100dvh;
   overflow-x: hidden;

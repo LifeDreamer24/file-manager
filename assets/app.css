@@ -415,9 +415,12 @@ button {
   outline: none;
 }
 body.light input,
-body.light select,
-body.light button {
+body.light select {
   background: rgba(255, 255, 255, 0.74);
+}
+body.light button {
+  border-color: rgba(16, 122, 85, 0.34);
+  background: rgba(16, 122, 85, 0.09);
 }
 input:focus,
 select:focus,
@@ -1062,7 +1065,8 @@ tbody tr:hover {
   font-size: 0.88rem;
 }
 body.light .action {
-  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(16, 122, 85, 0.34);
+  background: rgba(16, 122, 85, 0.09);
 }
 .action:hover {
   border-color: var(--good);
@@ -1095,6 +1099,10 @@ body.light .action {
   font-size: 1.35rem;
   line-height: 1;
   color: var(--text);
+}
+body.light .item-menu-toggle {
+  border-color: rgba(16, 122, 85, 0.44);
+  background: rgba(16, 122, 85, 0.12);
 }
 .item-menu-toggle:hover {
   transform: none;

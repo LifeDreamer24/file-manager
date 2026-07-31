@@ -193,6 +193,8 @@ const folderMotionMedia = window.matchMedia(
 let folderLoadSequence = 0;
 let folderContentAnimation = null;
 let folderPanelAnimation = null;
+let editorPreviewSequence = 0;
+let editorPreviewAnimation = null;
 
 function cancelFolderMotion() {
   folderContentAnimation?.cancel();
@@ -211,6 +213,12 @@ async function waitForAnimation(animation) {
 }
 function folderFadeTarget() {
   return content.querySelector(".file-table tbody") || content;
+}
+function cancelEditorPreviewMotion() {
+  editorPreviewAnimation?.cancel();
+  editorPreviewAnimation = null;
+  editorBody.style.removeProperty("opacity");
+  editorPreview.style.removeProperty("opacity");
 }
 async function loadFolder(
   showToast = false,
@@ -1486,7 +1494,7 @@ async function editFile(path) {
     !confirm("You have unsaved editor changes. Open another file anyway?")
   )
     return;
-  setPreviewMode(false);
+  setPreviewMode(false, false, false);
   state.editing = null;
   state.dirty = false;
   setEditorControls(false);
@@ -1520,7 +1528,7 @@ async function editFile(path) {
     });
   } catch (e) {
     state.editing = null;
-    setPreviewMode(false);
+    setPreviewMode(false, false, false);
     editorText.value = "";
     editorText.disabled = true;
     setEditorControls(false);
@@ -2038,23 +2046,50 @@ function scheduleEditorPreview() {
   clearTimeout(state.previewTimer);
   state.previewTimer = window.setTimeout(renderEditorPreview, 140);
 }
-function setPreviewMode(show, focusEditor = false) {
+async function setPreviewMode(show, focusEditor = false, transition = true) {
+  const sequence = ++editorPreviewSequence;
   const canPreview = !!previewKind();
-  state.previewing = !!show && canPreview;
+  const nextPreviewing = !!show && canPreview;
+  const changed = state.previewing !== nextPreviewing;
+  const outgoing = state.previewing ? editorPreview : editorBody;
+  const incoming = nextPreviewing ? editorPreview : editorBody;
+  state.previewing = nextPreviewing;
   clearTimeout(state.previewTimer);
   state.previewTimer = null;
-  editorBody.hidden = state.previewing;
-  editorPreview.hidden = !state.previewing;
+  cancelEditorPreviewMotion();
   previewFile.textContent = state.previewing ? "Edit" : "Preview";
   previewFile.setAttribute("aria-pressed", String(state.previewing));
+
+  if (changed && transition && !folderMotionMedia.matches && !outgoing.hidden) {
+    editorPreviewAnimation = outgoing.animate(
+      [{ opacity: 1 }, { opacity: 0 }],
+      { duration: 140, easing: "ease-in", fill: "forwards" },
+    );
+    await waitForAnimation(editorPreviewAnimation);
+    if (sequence !== editorPreviewSequence) return;
+  }
+
+  outgoing.hidden = true;
+  incoming.hidden = false;
   if (state.previewing) {
     renderEditorPreview();
   } else {
     editorPreviewContent.className = "editor-preview-content";
     editorPreviewContent.replaceChildren();
-    if (focusEditor && state.editing) {
-      requestAnimationFrame(() => editorText.focus());
-    }
+  }
+
+  if (changed && transition && !folderMotionMedia.matches) {
+    editorPreviewAnimation = incoming.animate(
+      [{ opacity: 0 }, { opacity: 1 }],
+      { duration: 170, easing: "ease-out", fill: "forwards" },
+    );
+    await waitForAnimation(editorPreviewAnimation);
+    if (sequence !== editorPreviewSequence) return;
+  }
+
+  cancelEditorPreviewMotion();
+  if (!state.previewing && focusEditor && state.editing) {
+    requestAnimationFrame(() => editorText.focus());
   }
 }
 function togglePreview() {
@@ -2110,7 +2145,7 @@ function closeEditor(force = false) {
   )
     return false;
   const returnFocus = state.editorReturnFocus;
-  setPreviewMode(false);
+  setPreviewMode(false, false, false);
   state.editing = null;
   state.originalText = "";
   state.dirty = false;

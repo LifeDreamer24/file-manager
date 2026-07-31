@@ -309,7 +309,7 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
         <h2>Open your workspace.</h2>
         <p>Sign in to browse and manage the files hosted on this server.</p>
       </div>
-      <a class="home-button home-button-primary" href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>" data-page-transition>Log in <span aria-hidden="true">→</span></a>
+      <a class="home-button home-button-primary" href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>" data-page-transition>Log in</a>
     </section>
 
     <footer class="home-footer">

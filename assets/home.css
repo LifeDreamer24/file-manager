@@ -943,3 +943,36 @@ body.light .home-cta {
     to { opacity: 1; }
   }
 }
+
+
+/* Match homepage light surfaces to the mint app palette */
+body.light .home-window,
+body.light .home-feature-card,
+body.light .home-security-card,
+body.light .home-cta {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.68), transparent 46%),
+    var(--light-surface);
+  box-shadow:
+    0 28px 70px rgba(31, 82, 60, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.84);
+}
+
+body.light .home-window-top,
+body.light .home-toolbar-preview > span,
+body.light .home-window-status {
+  background: var(--light-surface-inset);
+}
+
+body.light .home-browser-preview {
+  background: rgba(226, 244, 234, 0.78);
+}
+
+body.light .home-file-head,
+body.light .home-storage-preview {
+  background: rgba(238, 249, 243, 0.52);
+}
+
+body.light .home-file-row {
+  border-top-color: rgba(16, 122, 85, 0.16);
+}

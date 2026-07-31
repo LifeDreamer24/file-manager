@@ -594,7 +594,7 @@ body.item-menu-open #browserPanel {
 #content.folder-loading {
   pointer-events: none;
 }
-.wrap.folder-resizing {
+#content.folder-resizing {
   overflow: hidden;
 }
 

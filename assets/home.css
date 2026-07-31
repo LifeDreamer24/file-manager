@@ -769,7 +769,16 @@ body.light .home-cta {
     flex: 0 0 auto;
     margin-left: auto;
   }
-  .home-nav .theme-toggle { width: 40px; height: 40px; }
+  .home-nav .theme-toggle {
+    flex: 0 0 40px;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    aspect-ratio: 1;
+  }
   .home-button-small { min-height: 40px; padding: 0 14px; }
 
   .home-hero {

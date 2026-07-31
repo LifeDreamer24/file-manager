@@ -85,7 +85,6 @@ $loginThemeJsVersion = (string)(filemtime(__DIR__ . '/assets/login-theme.js') ?:
 $jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
 $diskUsageCssVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.css') ?: 1);
 $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1);
-$ambientEffectsJsVersion = (string)(filemtime(__DIR__ . '/assets/ambient-effects.js') ?: 1);
 ?>
 <!doctype html>
 <html lang="en">
@@ -102,7 +101,6 @@ $ambientEffectsJsVersion = (string)(filemtime(__DIR__ . '/assets/ambient-effects
   <link rel="stylesheet" href="assets/disk-usage.css?v=<?= $diskUsageCssVersion ?>" />
 </head>
 <body>
-<script src="assets/ambient-effects.js?v=<?= $ambientEffectsJsVersion ?>" defer></script>
 <?php if (!$loggedIn): ?>
   <script src="assets/login-theme.js?v=<?= $loginThemeJsVersion ?>"></script>
   <main class="login-wrap">
@@ -206,7 +204,7 @@ $ambientEffectsJsVersion = (string)(filemtime(__DIR__ . '/assets/ambient-effects
     <div id="storageUsage" class="storage-usage" role="status" aria-live="polite">
       <div class="storage-usage-head">
         <span class="storage-usage-title">Storage</span>
-        <span id="storageUsageDetail" class="storage-usage-detail">Checking disk usage...</span>
+        <span id="storageUsageDetail" class="storage-usage-detail">Checking uploaded files...</span>
       </div>
       <div id="storageUsageTrack" class="storage-usage-track" role="progressbar" aria-label="Storage usage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <div id="storageUsageBar" class="storage-usage-bar"></div>

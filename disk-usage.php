@@ -22,7 +22,7 @@ if (!is_logged_in()) {
     exit;
 }
 
-function disk_usage_format_bytes(int $bytes): string {
+function storage_usage_format_bytes(int $bytes): string {
     if ($bytes <= 0) return '0 B';
 
     $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
@@ -32,37 +32,66 @@ function disk_usage_format_bytes(int $bytes): string {
     return round($value, $index === 0 ? 0 : 1) . ' ' . $units[$index];
 }
 
+function managed_files_size(string $directory): int {
+    if (!is_dir($directory) || is_link($directory)) return 0;
+
+    $bytes = 0;
+
+    try {
+        $visibleEntries = new RecursiveCallbackFilterIterator(
+            new RecursiveDirectoryIterator(
+                $directory,
+                FilesystemIterator::SKIP_DOTS
+            ),
+            static function (SplFileInfo $item): bool {
+                return !$item->isLink()
+                    && !str_starts_with($item->getFilename(), '.');
+            }
+        );
+        $iterator = new RecursiveIteratorIterator(
+            $visibleEntries,
+            RecursiveIteratorIterator::LEAVES_ONLY,
+            RecursiveIteratorIterator::CATCH_GET_CHILD
+        );
+
+        foreach ($iterator as $item) {
+            if (!$item->isFile()) continue;
+            $size = $item->getSize();
+            if ($size > 0) $bytes += $size;
+        }
+    } catch (RuntimeException $error) {
+        // Unreadable entries are excluded rather than exposing server details.
+    }
+
+    return $bytes;
+}
+
 $configuredPath = (string)($config['base_dir'] ?? __DIR__);
 $storagePath = realpath($configuredPath);
-if ($storagePath === false) {
-    $storagePath = realpath(dirname($configuredPath));
-}
-if ($storagePath === false) {
-    $storagePath = __DIR__;
+if ($storagePath === false || !is_dir($storagePath)) {
+    http_response_code(503);
+    echo json_encode(['ok' => false, 'error' => 'Uploaded-file usage is unavailable.']);
+    exit;
 }
 
 clearstatcache(true, $storagePath);
 $total = @disk_total_space($storagePath);
-$free = @disk_free_space($storagePath);
 
-if ($total === false || $free === false || $total <= 0) {
+if ($total === false || $total <= 0) {
     http_response_code(503);
-    echo json_encode(['ok' => false, 'error' => 'Disk usage is unavailable.']);
+    echo json_encode(['ok' => false, 'error' => 'Storage capacity is unavailable.']);
     exit;
 }
 
 $totalBytes = (int)$total;
-$freeBytes = max(0, min($totalBytes, (int)$free));
-$usedBytes = max(0, $totalBytes - $freeBytes);
-$percentage = round(($usedBytes / $totalBytes) * 100, 1);
+$uploadedBytes = managed_files_size($storagePath);
+$percentage = round((min($uploadedBytes, $totalBytes) / $totalBytes) * 100, 1);
 
 echo json_encode([
     'ok' => true,
-    'used' => $usedBytes,
-    'free' => $freeBytes,
+    'uploaded' => $uploadedBytes,
     'total' => $totalBytes,
     'percentage' => $percentage,
-    'used_label' => disk_usage_format_bytes($usedBytes),
-    'free_label' => disk_usage_format_bytes($freeBytes),
-    'total_label' => disk_usage_format_bytes($totalBytes),
+    'uploaded_label' => storage_usage_format_bytes($uploadedBytes),
+    'total_label' => storage_usage_format_bytes($totalBytes),
 ], JSON_UNESCAPED_SLASHES);

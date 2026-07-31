@@ -113,6 +113,27 @@ body:has(> .home-shell) {
   outline: none;
 }
 
+.home-button-arrow {
+  flex: 0 0 auto;
+  transition: transform 0.18s ease;
+}
+
+.home-button:hover .home-button-arrow,
+.home-button:focus-visible .home-button-arrow {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-button-arrow {
+    transition: none;
+  }
+
+  .home-button:hover .home-button-arrow,
+  .home-button:focus-visible .home-button-arrow {
+    transform: none;
+  }
+}
+
 .home-button-small {
   min-height: 42px;
   padding: 0 17px;

@@ -89,6 +89,7 @@ $faviconVersion = (string)(filemtime(__DIR__ . '/assets/favicon.svg') ?: 1);
 $cssVersion = (string)(filemtime(__DIR__ . '/assets/app.css') ?: 1);
 $homeCssVersion = (string)(filemtime(__DIR__ . '/assets/home.css') ?: 1);
 $loginThemeJsVersion = (string)(filemtime(__DIR__ . '/assets/login-theme.js') ?: 1);
+$pageTransitionsJsVersion = (string)(filemtime(__DIR__ . '/assets/page-transitions.js') ?: 1);
 $jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
 $diskUsageCssVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.css') ?: 1);
 $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1);
@@ -107,6 +108,7 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
   <link rel="stylesheet" href="assets/app.css?v=<?= $cssVersion ?>" />
   <link rel="stylesheet" href="assets/home.css?v=<?= $homeCssVersion ?>" />
   <link rel="stylesheet" href="assets/disk-usage.css?v=<?= $diskUsageCssVersion ?>" />
+  <script src="assets/page-transitions.js?v=<?= $pageTransitionsJsVersion ?>" defer></script>
 </head>
 <body>
 <?php if (!$loggedIn): ?>
@@ -124,21 +126,21 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
         </button>
       </div>
       <?php if ($error): ?><div class="error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
-      <form method="post" action="<?= htmlspecialchars($loginAction, ENT_QUOTES, 'UTF-8') ?>">
+      <form method="post" action="<?= htmlspecialchars($loginAction, ENT_QUOTES, 'UTF-8') ?>" data-page-transition>
         <input type="hidden" name="action" value="login" />
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>" />
         <input type="hidden" name="path" value="<?= htmlspecialchars($requestedPath, ENT_QUOTES, 'UTF-8') ?>" />
         <input type="password" name="password" placeholder="Password" autocomplete="current-password" autofocus required />
         <button type="submit" <?= $passwordConfigured ? '' : 'disabled' ?>>Log in</button>
       </form>
-      <a class="login-back" href="<?= htmlspecialchars(app_base_url(), ENT_QUOTES, 'UTF-8') ?>">← Back to homepage</a>
+      <a class="login-back" href="<?= htmlspecialchars(app_base_url(), ENT_QUOTES, 'UTF-8') ?>" data-page-transition>← Back to homepage</a>
       <p class="footer">LifeDreamer24 · Released under the Unlicense</p>
     </section>
   </main>
 <?php else: ?>
   <main class="home-shell">
     <header class="home-nav">
-      <a class="home-brand" href="<?= htmlspecialchars(app_base_url(), ENT_QUOTES, 'UTF-8') ?>" aria-label="<?= $appName ?> homepage">
+      <a class="home-brand" href="<?= htmlspecialchars(app_base_url(), ENT_QUOTES, 'UTF-8') ?>" aria-label="<?= $appName ?> homepage" data-page-transition>
         <span class="home-brand-mark" aria-hidden="true">
           <span></span><span></span><span></span>
         </span>
@@ -152,7 +154,7 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
         <button id="themeToggle" class="theme-toggle" type="button" title="Theme: System" aria-label="Theme: System">
           <span id="themeToggleIcon" aria-hidden="true">◐</span>
         </button>
-        <a class="home-button home-button-small" href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>">Log in</a>
+        <a class="home-button home-button-small" href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>" data-page-transition>Log in</a>
       </div>
     </header>
 
@@ -162,7 +164,7 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
         <h1 id="home-title">A better way to manage files on your server.</h1>
         <p class="home-lead">Browse, edit, preview, upload, and organize your hosted content from one focused workspace—without a database, bulky framework, or cloud dependency.</p>
         <div class="home-hero-actions">
-          <a class="home-button home-button-primary" href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>">
+          <a class="home-button home-button-primary" href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>" data-page-transition>
             Open file manager <span aria-hidden="true">→</span>
           </a>
           <a class="home-button home-button-secondary" href="#features">Explore features</a>
@@ -293,11 +295,11 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
         <h2>Open your workspace.</h2>
         <p>Sign in to browse and manage the files hosted on this server.</p>
       </div>
-      <a class="home-button home-button-primary" href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>">Log in <span aria-hidden="true">→</span></a>
+      <a class="home-button home-button-primary" href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>" data-page-transition>Log in <span aria-hidden="true">→</span></a>
     </section>
 
     <footer class="home-footer">
-      <a class="home-brand home-brand-footer" href="<?= htmlspecialchars(app_base_url(), ENT_QUOTES, 'UTF-8') ?>">
+      <a class="home-brand home-brand-footer" href="<?= htmlspecialchars(app_base_url(), ENT_QUOTES, 'UTF-8') ?>" data-page-transition>
         <span class="home-brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
         <span><?= $appName ?></span>
       </a>
@@ -320,7 +322,7 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
         <div class="login-pill">
           <span class="badge-dot"></span>
           <span>Logged in</span>
-          <form method="post" action="<?= htmlspecialchars(app_base_url(), ENT_QUOTES, 'UTF-8') ?>" class="logout-form">
+          <form method="post" action="<?= htmlspecialchars(app_base_url(), ENT_QUOTES, 'UTF-8') ?>" class="logout-form" data-page-transition>
             <input type="hidden" name="action" value="logout" />
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>" />
             <input id="logoutPath" type="hidden" name="path" value="<?= htmlspecialchars($requestedPath, ENT_QUOTES, 'UTF-8') ?>" />

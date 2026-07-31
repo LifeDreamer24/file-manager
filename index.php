@@ -77,10 +77,17 @@ if (is_logged_in() && time() - (int)($_SESSION['file_manager_login_time'] ?? 0) 
 }
 
 $loggedIn = is_logged_in();
+$showLogin = !$loggedIn && (
+    (string)($_GET['page'] ?? '') === 'login'
+    || ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'login')
+);
 $appName = htmlspecialchars((string)($config['app_name'] ?? 'File Manager'), ENT_QUOTES, 'UTF-8');
-$loginAction = app_base_url() . ($requestedPath !== '' ? '?path=' . rawurlencode($requestedPath) : '');
+$loginUrl = app_base_url() . '?page=login';
+if ($requestedPath !== '') $loginUrl .= '&path=' . rawurlencode($requestedPath);
+$loginAction = $loginUrl;
 $faviconVersion = (string)(filemtime(__DIR__ . '/assets/favicon.svg') ?: 1);
 $cssVersion = (string)(filemtime(__DIR__ . '/assets/app.css') ?: 1);
+$homeCssVersion = (string)(filemtime(__DIR__ . '/assets/home.css') ?: 1);
 $loginThemeJsVersion = (string)(filemtime(__DIR__ . '/assets/login-theme.js') ?: 1);
 $jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
 $diskUsageCssVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.css') ?: 1);
@@ -92,17 +99,19 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><?= $appName ?></title>
-  <meta name="description" content="Server-hosted file browser and editor for your content." />
+  <meta name="description" content="A polished, private, self-hosted workspace for browsing, editing, previewing, and organizing server files." />
   <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)" />
   <meta name="theme-color" content="#f4f6fa" media="(prefers-color-scheme: light)" />
   <meta name="csrf-token" content="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=<?= $faviconVersion ?>" />
   <link rel="stylesheet" href="assets/app.css?v=<?= $cssVersion ?>" />
+  <link rel="stylesheet" href="assets/home.css?v=<?= $homeCssVersion ?>" />
   <link rel="stylesheet" href="assets/disk-usage.css?v=<?= $diskUsageCssVersion ?>" />
 </head>
 <body>
 <?php if (!$loggedIn): ?>
   <script src="assets/login-theme.js?v=<?= $loginThemeJsVersion ?>"></script>
+<?php if ($showLogin): ?>
   <main class="login-wrap">
     <section class="login-card">
       <div class="login-card-head">
@@ -122,9 +131,181 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
         <input type="password" name="password" placeholder="Password" autocomplete="current-password" autofocus required />
         <button type="submit" <?= $passwordConfigured ? '' : 'disabled' ?>>Log in</button>
       </form>
+      <a class="login-back" href="<?= htmlspecialchars(app_base_url(), ENT_QUOTES, 'UTF-8') ?>">← Back to homepage</a>
       <p class="footer">LifeDreamer24 · Released under the Unlicense</p>
     </section>
   </main>
+<?php else: ?>
+  <main class="home-shell">
+    <header class="home-nav">
+      <a class="home-brand" href="<?= htmlspecialchars(app_base_url(), ENT_QUOTES, 'UTF-8') ?>" aria-label="<?= $appName ?> homepage">
+        <span class="home-brand-mark" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span><?= $appName ?></span>
+      </a>
+      <nav class="home-nav-links" aria-label="Homepage navigation">
+        <a href="#features">Features</a>
+        <a href="#security">Security</a>
+      </nav>
+      <div class="home-nav-actions">
+        <button id="themeToggle" class="theme-toggle" type="button" title="Theme: System" aria-label="Theme: System">
+          <span id="themeToggleIcon" aria-hidden="true">◐</span>
+        </button>
+        <a class="home-button home-button-small" href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>">Log in</a>
+      </div>
+    </header>
+
+    <section class="home-hero" aria-labelledby="home-title">
+      <div class="home-hero-copy">
+        <div class="home-eyebrow"><span class="badge-dot"></span> Your files, under your control</div>
+        <h1 id="home-title">A better way to manage files on your server.</h1>
+        <p class="home-lead">Browse, edit, preview, upload, and organize your hosted content from one focused workspace—without a database, bulky framework, or cloud dependency.</p>
+        <div class="home-hero-actions">
+          <a class="home-button home-button-primary" href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>">
+            Open file manager <span aria-hidden="true">→</span>
+          </a>
+          <a class="home-button home-button-secondary" href="#features">Explore features</a>
+        </div>
+        <ul class="home-trust-list" aria-label="Product highlights">
+          <li><span aria-hidden="true">✓</span> Self-hosted</li>
+          <li><span aria-hidden="true">✓</span> Password protected</li>
+          <li><span aria-hidden="true">✓</span> Mobile ready</li>
+        </ul>
+      </div>
+
+      <div class="home-product" aria-label="File manager interface preview">
+        <div class="home-product-glow" aria-hidden="true"></div>
+        <div class="home-window">
+          <div class="home-window-top">
+            <div>
+              <strong>File Manager</strong>
+              <span>Server-hosted workspace</span>
+            </div>
+            <div class="home-window-status"><span class="badge-dot"></span> Logged in</div>
+          </div>
+          <div class="home-toolbar-preview">
+            <span class="home-search-preview">Search this folder...</span>
+            <span>New</span><span>Upload</span><span>Refresh</span>
+          </div>
+          <div class="home-browser-preview">
+            <div class="home-path-preview">
+              <span>Files</span><span>›</span><strong>projects</strong>
+              <small>4 items</small>
+            </div>
+            <div class="home-file-head"><span>Name</span><span>Size</span><span>Modified</span><span></span></div>
+            <div class="home-file-row">
+              <span class="home-file-name"><i class="home-folder-icon" aria-hidden="true"></i>assets</span>
+              <span>—</span><span>Today</span><strong>•••</strong>
+            </div>
+            <div class="home-file-row home-file-row-active">
+              <span class="home-file-name"><i class="home-code-icon" aria-hidden="true">&lt;/&gt;</i>README.md</span>
+              <span>8 KB</span><span>Today</span><strong>•••</strong>
+            </div>
+            <div class="home-file-row">
+              <span class="home-file-name"><i class="home-image-icon" aria-hidden="true"></i>preview.png</span>
+              <span>1.4 MB</span><span>Yesterday</span><strong>•••</strong>
+            </div>
+            <div class="home-file-row">
+              <span class="home-file-name"><i class="home-media-icon" aria-hidden="true">▶</i>demo.webm</span>
+              <span>24 MB</span><span>Jul 28</span><strong>•••</strong>
+            </div>
+          </div>
+          <div class="home-storage-preview">
+            <span><strong>Storage</strong><small>42.8 GB of 80 GB used</small></span>
+            <span class="home-storage-track"><i></i></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-section home-intro" id="features" aria-labelledby="features-title">
+      <div class="home-section-heading">
+        <span class="home-kicker">Everything in one place</span>
+        <h2 id="features-title">Made for real file work, not just browsing.</h2>
+        <p>Every part of the workspace is built to keep routine server management fast, clear, and comfortable on any screen.</p>
+      </div>
+      <div class="home-feature-grid">
+        <article class="home-feature-card">
+          <span class="home-feature-icon" aria-hidden="true">↕</span>
+          <h3>Move files freely</h3>
+          <p>Create folders, rename items, drag files into destinations, extract archives, and download any selection as a ZIP.</p>
+          <span class="home-feature-detail">Multi-select · Folder picker · ZIP tools</span>
+        </article>
+        <article class="home-feature-card">
+          <span class="home-feature-icon" aria-hidden="true">&lt;/&gt;</span>
+          <h3>Edit without leaving</h3>
+          <p>Open supported text files in a focused editor with line numbers, formatting tools, safe saving, and unsaved-change protection.</p>
+          <span class="home-feature-detail">Markdown · JSON · CFG · Code</span>
+        </article>
+        <article class="home-feature-card">
+          <span class="home-feature-icon" aria-hidden="true">◉</span>
+          <h3>Preview your content</h3>
+          <p>View images, play audio and video, or render Markdown, HTML, and SVG previews directly inside the authenticated interface.</p>
+          <span class="home-feature-detail">Images · Audio · Video · Documents</span>
+        </article>
+        <article class="home-feature-card">
+          <span class="home-feature-icon" aria-hidden="true">⇧</span>
+          <h3>Upload at scale</h3>
+          <p>Drop full folder trees or multiple files onto the page, follow combined progress, cancel work, and resolve name conflicts clearly.</p>
+          <span class="home-feature-detail">Drag & drop · Retry · Conflict handling</span>
+        </article>
+        <article class="home-feature-card">
+          <span class="home-feature-icon" aria-hidden="true">⌕</span>
+          <h3>Find your way quickly</h3>
+          <p>Use breadcrumbs, folder search, compact item menus, and URL-based navigation to reach deeply nested content without losing context.</p>
+          <span class="home-feature-detail">Search · Breadcrumbs · Deep links</span>
+        </article>
+        <article class="home-feature-card">
+          <span class="home-feature-icon" aria-hidden="true">◐</span>
+          <h3>Comfortable everywhere</h3>
+          <p>Switch between system, light, and dark themes in a responsive interface tuned for desktop, landscape, and narrow mobile screens.</p>
+          <span class="home-feature-detail">Responsive · Accessible · Theme aware</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="home-section home-security" id="security" aria-labelledby="security-title">
+      <div class="home-security-copy">
+        <span class="home-kicker">Built with sensible safeguards</span>
+        <h2 id="security-title">Your server stays at the center.</h2>
+        <p>The manager is filesystem-backed and self-hosted. Authentication, validated paths, protected operations, and defensive upload rules help keep the workspace focused on the directory you choose.</p>
+        <div class="home-security-points">
+          <span><i aria-hidden="true">✓</i> CSRF-protected changes</span>
+          <span><i aria-hidden="true">✓</i> Login rate limiting</span>
+          <span><i aria-hidden="true">✓</i> Safe path validation</span>
+          <span><i aria-hidden="true">✓</i> Protected upload rules</span>
+        </div>
+      </div>
+      <div class="home-security-card">
+        <div class="home-shield" aria-hidden="true"><span>✓</span></div>
+        <strong>Private workspace</strong>
+        <p>The interface and management API require an authenticated session.</p>
+        <div class="home-security-line"><span>Connection</span><strong>HTTPS recommended</strong></div>
+        <div class="home-security-line"><span>Storage</span><strong>Your filesystem</strong></div>
+        <div class="home-security-line"><span>Dependencies</span><strong>No database</strong></div>
+      </div>
+    </section>
+
+    <section class="home-cta">
+      <div>
+        <span class="home-kicker">Ready when you are</span>
+        <h2>Open your workspace.</h2>
+        <p>Sign in to browse and manage the files hosted on this server.</p>
+      </div>
+      <a class="home-button home-button-primary" href="<?= htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8') ?>">Log in <span aria-hidden="true">→</span></a>
+    </section>
+
+    <footer class="home-footer">
+      <a class="home-brand home-brand-footer" href="<?= htmlspecialchars(app_base_url(), ENT_QUOTES, 'UTF-8') ?>">
+        <span class="home-brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span><?= $appName ?></span>
+      </a>
+      <p>Self-hosted file management, designed with care.</p>
+      <span>LifeDreamer24 · Released under the Unlicense</span>
+    </footer>
+  </main>
+<?php endif; ?>
 <?php else: ?>
   <main class="wrap">
     <header>

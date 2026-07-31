@@ -668,16 +668,18 @@ async function extractArchivesWithProgress(items, policy) {
       : skipped
         ? "partial"
         : "";
-    showUploadProgress(
-      100,
-      errors.length
-        ? ok
-          ? "Extraction finished with errors"
-          : "Extraction failed"
-        : "Extraction complete",
-      detail,
-      status,
-    );
+    animateUploadProgressResize(() => {
+      showUploadProgress(
+        100,
+        errors.length
+          ? ok
+            ? "Extraction finished with errors"
+            : "Extraction failed"
+          : "Extraction complete",
+        detail,
+        status,
+      );
+    });
     toast(detail);
     hideUploadProgress(errors.length || skipped ? 5000 : 2500);
     await loadFolder();
@@ -738,7 +740,8 @@ function fileRelativePath(file) {
 let uploadInProgress = false,
   extractionInProgress = false,
   uploadProgressTimer = 0,
-  uploadProgressTransitionTimer = 0;
+  uploadProgressTransitionTimer = 0,
+  uploadProgressSizeAnimation = null;
 function setUploadControlsDisabled(disabled) {
   document
     .querySelectorAll("#uploadMenuBtn,[data-upload]")
@@ -764,6 +767,41 @@ function setUploadProgressVisible(visible) {
     () => browserPanel.classList.remove("upload-progress-changing"),
     reducedMotion ? 0 : 320,
   );
+}
+function animateUploadProgressResize(update) {
+  const canAnimate =
+    uploadProgress.classList.contains("show") &&
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const previousHeight = canAnimate
+    ? uploadProgress.getBoundingClientRect().height
+    : 0;
+
+  uploadProgressSizeAnimation?.cancel();
+  uploadProgressSizeAnimation = null;
+  update();
+
+  if (!canAnimate) return;
+  const nextHeight = uploadProgress.getBoundingClientRect().height;
+  if (Math.abs(nextHeight - previousHeight) <= 1) return;
+
+  const animation = uploadProgress.animate(
+    [
+      { height: `${previousHeight}px` },
+      { height: `${nextHeight}px` },
+    ],
+    {
+      duration: 240,
+      easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+    },
+  );
+  uploadProgressSizeAnimation = animation;
+  animation.finished
+    .catch(() => {})
+    .then(() => {
+      if (uploadProgressSizeAnimation === animation) {
+        uploadProgressSizeAnimation = null;
+      }
+    });
 }
 function setProgressOperation(operation) {
   uploadProgress.dataset.operation = operation;
@@ -1022,38 +1060,44 @@ async function uploadFiles(files, presetPolicy = null) {
     }
     const failed = state.uploadFailures.length;
     if (state.uploadCancelled) {
-      uploadCancel.disabled = false;
-      uploadCancel.textContent = "Close";
-      uploadCancel.hidden = false;
-      uploadRetry.hidden = state.failedUploads.length === 0;
-      showUploadProgress(
-        null,
-        "Upload cancelled",
-        `${uploaded} uploaded, ${skipped} skipped, ${state.failedUploads.length} available to retry.`,
-        "partial",
-      );
+      animateUploadProgressResize(() => {
+        uploadCancel.disabled = false;
+        uploadCancel.textContent = "Close";
+        uploadCancel.hidden = false;
+        uploadRetry.hidden = state.failedUploads.length === 0;
+        showUploadProgress(
+          null,
+          "Upload cancelled",
+          `${uploaded} uploaded, ${skipped} skipped, ${state.failedUploads.length} available to retry.`,
+          "partial",
+        );
+      });
     } else if (failed) {
-      uploadCancel.disabled = false;
-      uploadCancel.textContent = "Close";
-      uploadCancel.hidden = false;
-      uploadRetry.hidden = state.failedUploads.length === 0;
-      showUploadProgress(
-        100,
-        state.failedUploads.length
-          ? "Upload finished with errors"
-          : "Upload blocked",
-        uploadFailureDetail(uploaded, skipped),
-        "error",
-      );
+      animateUploadProgressResize(() => {
+        uploadCancel.disabled = false;
+        uploadCancel.textContent = "Close";
+        uploadCancel.hidden = false;
+        uploadRetry.hidden = state.failedUploads.length === 0;
+        showUploadProgress(
+          100,
+          state.failedUploads.length
+            ? "Upload finished with errors"
+            : "Upload blocked",
+          uploadFailureDetail(uploaded, skipped),
+          "error",
+        );
+      });
       toast(state.uploadFailures[0].reason);
     } else {
-      uploadCancel.hidden = true;
-      showUploadProgress(
-        100,
-        "Upload complete",
-        `${uploaded} uploaded${skipped ? `, ${skipped} existing skipped` : ""}.`,
-        skipped ? "partial" : "",
-      );
+      animateUploadProgressResize(() => {
+        uploadCancel.hidden = true;
+        showUploadProgress(
+          100,
+          "Upload complete",
+          `${uploaded} uploaded${skipped ? `, ${skipped} existing skipped` : ""}.`,
+          skipped ? "partial" : "",
+        );
+      });
       hideUploadProgress(skipped ? 5000 : 2500);
     }
     await loadFolder();

@@ -243,37 +243,37 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
       </div>
       <div class="home-feature-grid">
         <article class="home-feature-card">
-          <span class="home-feature-icon" aria-hidden="true">↕</span>
+          <span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M12 3 9 6m3-3 3 3M21 12l-3-3m3 3-3 3M12 21l-3-3m3 3 3-3M3 12l3-3m-3 3 3 3"/></svg></span>
           <h3>Move files freely</h3>
           <p>Create folders, rename items, drag files into destinations, extract archives, and download any selection as a ZIP.</p>
           <span class="home-feature-detail">Multi-select · Folder picker · ZIP tools</span>
         </article>
         <article class="home-feature-card">
-          <span class="home-feature-icon" aria-hidden="true">&lt;/&gt;</span>
+          <span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m8 8-4 4 4 4m8-8 4 4-4 4M14 5l-4 14"/></svg></span>
           <h3>Edit without leaving</h3>
           <p>Open supported text files in a focused editor with line numbers, formatting tools, safe saving, and unsaved-change protection.</p>
           <span class="home-feature-detail">Markdown · JSON · CFG · Code</span>
         </article>
         <article class="home-feature-card">
-          <span class="home-feature-icon" aria-hidden="true">◉</span>
+          <span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></span>
           <h3>Preview your content</h3>
           <p>View images, play audio and video, or render Markdown, HTML, and SVG previews directly inside the authenticated interface.</p>
           <span class="home-feature-detail">Images · Audio · Video · Documents</span>
         </article>
         <article class="home-feature-card">
-          <span class="home-feature-icon" aria-hidden="true">⇧</span>
+          <span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V3m0 0L7 8m5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></span>
           <h3>Upload at scale</h3>
           <p>Drop full folder trees or multiple files onto the page, follow combined progress, cancel work, and resolve name conflicts clearly.</p>
           <span class="home-feature-detail">Drag & drop · Retry · Conflict handling</span>
         </article>
         <article class="home-feature-card">
-          <span class="home-feature-icon" aria-hidden="true">⌕</span>
+          <span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg></span>
           <h3>Find your way quickly</h3>
           <p>Use breadcrumbs, folder search, compact item menus, and URL-based navigation to reach deeply nested content without losing context.</p>
           <span class="home-feature-detail">Search · Breadcrumbs · Deep links</span>
         </article>
         <article class="home-feature-card">
-          <span class="home-feature-icon" aria-hidden="true">◐</span>
+          <span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a6.7 6.7 0 0 0 11 11Z"/></svg></span>
           <h3>Comfortable everywhere</h3>
           <p>Switch between system, light, and dark themes in a responsive interface tuned for desktop, landscape, and narrow mobile screens.</p>
           <span class="home-feature-detail">Responsive · Accessible · Theme aware</span>

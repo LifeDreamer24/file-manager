@@ -1312,8 +1312,24 @@ async function createItem(type) {
   const name = prompt(`New ${label} name:`, suggested);
   if (!name) return;
   try {
-    const data = await apiPost("create", { type, path: state.path, name });
+    let data;
+    try {
+      data = await apiPost("create", { type, path: state.path, name });
+    } catch (e) {
+      if (type !== "file" || e.code !== "create_conflict") throw e;
+      const policy = await chooseConflictPolicy(
+        `A file named "${name}" already exists. Choose how to continue.`,
+      );
+      if (!policy) return;
+      data = await apiPost("create", {
+        type,
+        path: state.path,
+        name,
+        conflict: policy,
+      });
+    }
     toast(data.message || `${label} created.`);
+    if (data.skipped) return;
     await loadFolder();
     if (type === "file") {
       await new Promise((resolve) =>

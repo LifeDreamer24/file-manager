@@ -5,11 +5,18 @@
   padding: 9px 12px 10px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.014);
+  background:
+    linear-gradient(110deg, rgba(66, 211, 146, 0.045), transparent 42%),
+    rgba(23, 26, 33, 0.58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(14px) saturate(1.08);
 }
 
 body.light .storage-usage {
-  background: rgba(17, 24, 39, 0.014);
+  background:
+    linear-gradient(110deg, rgba(66, 211, 146, 0.1), transparent 42%),
+    rgba(255, 255, 255, 0.62);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .storage-usage-head {

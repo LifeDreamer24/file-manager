@@ -15,6 +15,9 @@
   --bad: #ff5d5d;
   --warn: #ffd166;
   --shadow: 0 18px 45px rgba(0, 0, 0, 0.26);
+  --dot: rgba(143, 240, 193, 0.19);
+  --surface-glow: rgba(66, 211, 146, 0.1);
+  --cursor-glow: rgba(66, 211, 146, 0.16);
   font-family:
     ui-sans-serif,
     system-ui,
@@ -37,6 +40,9 @@ body.light {
   --soft: rgba(66, 211, 146, 0.16);
   --name-hover: #087a55;
   --shadow: 0 18px 45px rgba(31, 41, 55, 0.12);
+  --dot: rgba(35, 146, 105, 0.2);
+  --surface-glow: rgba(66, 211, 146, 0.12);
+  --cursor-glow: rgba(66, 211, 146, 0.14);
 }
 * {
   box-sizing: border-box;
@@ -53,48 +59,78 @@ body {
   min-height: 100vh;
   color: var(--text);
   background: var(--bg);
+  isolation: isolate;
   transition: color 0.18s ease;
 }
 body::before {
   content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  height: auto;
-  min-height: 100vh;
-  z-index: 0;
+  position: fixed;
+  inset: 0;
+  z-index: -2;
   pointer-events: none;
   --wrap-width: min(1120px, calc(100vw - 32px));
   --wrap-left: calc((100vw - var(--wrap-width)) / 2);
   --glow-x: calc(var(--wrap-left) + clamp(118px, 13.5vw, 185px));
   --glow-y: clamp(92px, 5.6vw, 120px);
-  --glow-size: clamp(34rem, 38vw, 44rem);
+  --glow-size: clamp(32rem, 46vw, 50rem);
   background:
     radial-gradient(
       circle var(--glow-size) at var(--glow-x) var(--glow-y),
-      rgba(66, 211, 146, 0.24) 0,
-      rgba(66, 211, 146, 0.18) 18%,
-      rgba(66, 211, 146, 0.11) 38%,
-      rgba(66, 211, 146, 0.05) 58%,
-      rgba(66, 211, 146, 0) 78%
+      rgba(66, 211, 146, 0.27) 0,
+      rgba(66, 211, 146, 0.17) 22%,
+      rgba(66, 211, 146, 0.075) 46%,
+      rgba(66, 211, 146, 0) 74%
     ),
-    linear-gradient(180deg, #141821 0%, var(--bg) 54%, #090b0f 100%);
+    radial-gradient(
+      circle clamp(25rem, 34vw, 40rem) at 88% 18%,
+      rgba(78, 161, 255, 0.1),
+      transparent 70%
+    ),
+    linear-gradient(145deg, #151a22 0%, var(--bg) 52%, #090c10 100%);
   transform: none;
 }
 body.light::before {
   background:
     radial-gradient(
       circle var(--glow-size) at var(--glow-x) var(--glow-y),
-      rgba(66, 211, 146, 0.23) 0,
-      rgba(66, 211, 146, 0.17) 18%,
-      rgba(66, 211, 146, 0.1) 38%,
-      rgba(66, 211, 146, 0.045) 58%,
-      rgba(66, 211, 146, 0) 78%
+      rgba(66, 211, 146, 0.25) 0,
+      rgba(66, 211, 146, 0.16) 22%,
+      rgba(66, 211, 146, 0.07) 46%,
+      rgba(66, 211, 146, 0) 74%
     ),
-    linear-gradient(180deg, #fff8f1 0%, var(--bg) 56%, #e9edf5 100%);
+    radial-gradient(
+      circle clamp(25rem, 34vw, 40rem) at 88% 18%,
+      rgba(116, 92, 212, 0.1),
+      transparent 70%
+    ),
+    linear-gradient(145deg, #ffffff 0%, #f5faf7 48%, #eef1f7 100%);
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle at center,
+    var(--dot) 1px,
+    transparent 1.35px
+  );
+  background-position: center top;
+  background-size: 21px 21px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 76% 70% at 50% 18%,
+    #000 8%,
+    rgba(0, 0, 0, 0.88) 46%,
+    transparent 88%
+  );
+  mask-image: radial-gradient(
+    ellipse 76% 70% at 50% 18%,
+    #000 8%,
+    rgba(0, 0, 0, 0.88) 46%,
+    transparent 88%
+  );
+  opacity: 0.9;
 }
 body > main {
   position: relative;
@@ -121,6 +157,12 @@ h1 {
   font-size: clamp(1.8rem, 4vw, 3.15rem);
   line-height: 1;
   letter-spacing: -0.045em;
+  color: var(--text);
+  background: linear-gradient(105deg, var(--text) 12%, var(--accent2) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 8px 24px rgba(66, 211, 146, 0.12));
 }
 .subtitle {
   margin: 0;
@@ -517,9 +559,13 @@ button:disabled {
 .login-card {
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: rgba(23, 26, 33, 0.88);
-  box-shadow: none;
-  backdrop-filter: blur(12px);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), transparent 34%),
+    rgba(23, 26, 33, 0.84);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(18px) saturate(1.08);
 }
 .panel {
   overflow: visible;
@@ -531,7 +577,12 @@ button:disabled {
 body.light .panel,
 body.light .editor,
 body.light .login-card {
-  background: rgba(255, 255, 255, 0.88);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.86), transparent 42%),
+    rgba(255, 255, 255, 0.78);
+  box-shadow:
+    0 24px 70px rgba(31, 41, 55, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
 }
 #browserPanel,
 #content,
@@ -3470,5 +3521,196 @@ body.light .move-list {
     min-height: 32px;
     padding: 0;
     flex: 0 0 32px;
+  }
+}
+
+/* Ambient dotted theme and pointer feedback */
+.ambient-cursor-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: clamp(25rem, 42vw, 38rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    circle,
+    var(--cursor-glow) 0,
+    rgba(66, 211, 146, 0.08) 24%,
+    rgba(66, 211, 146, 0.025) 48%,
+    transparent 70%
+  );
+  filter: blur(5px);
+  will-change: transform, opacity;
+  transition:
+    opacity 260ms ease,
+    width 220ms ease,
+    filter 220ms ease;
+}
+.ambient-cursor-glow.is-visible {
+  opacity: 1;
+}
+.ambient-cursor-glow.is-interactive {
+  width: clamp(28rem, 45vw, 41rem);
+  filter: blur(2px) saturate(1.18);
+}
+.ambient-click-ripple {
+  position: fixed;
+  z-index: 1000;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border: 1.5px solid rgba(143, 240, 193, 0.95);
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 1px rgba(66, 211, 146, 0.12),
+    0 0 22px rgba(66, 211, 146, 0.55);
+  animation: ambientClick 560ms cubic-bezier(0.2, 0.72, 0.25, 1) forwards;
+}
+body.light .ambient-click-ripple {
+  border-color: rgba(8, 122, 85, 0.82);
+  box-shadow:
+    0 0 0 1px rgba(66, 211, 146, 0.1),
+    0 0 18px rgba(66, 211, 146, 0.4);
+}
+@keyframes ambientClick {
+  0% {
+    opacity: 0.95;
+    transform: scale(0.35);
+  }
+  65% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(5.2);
+  }
+}
+
+header,
+.toolbar,
+.storage-usage,
+.footer {
+  position: relative;
+  z-index: 1;
+}
+.toolbar input[type="search"],
+.toolbar-actions > button,
+.toolbar-actions > .dropdown > button,
+.theme-toggle,
+.login-pill {
+  backdrop-filter: blur(14px) saturate(1.08);
+}
+.toolbar input[type="search"] {
+  background:
+    linear-gradient(110deg, rgba(255, 255, 255, 0.035), transparent 44%),
+    rgba(17, 22, 29, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+body.light .toolbar input[type="search"] {
+  background:
+    linear-gradient(110deg, rgba(255, 255, 255, 0.82), transparent 48%),
+    rgba(255, 255, 255, 0.62);
+}
+#browserPanel::before,
+.login-card::before,
+.editor-shell::before,
+.move-card::before,
+.media-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 12% 0,
+    var(--surface-glow),
+    transparent 34%
+  );
+}
+#browserPanel,
+.login-card,
+.editor-shell,
+.move-card,
+.media-card {
+  position: relative;
+  isolation: isolate;
+}
+#browserPanel {
+  border-color: rgba(94, 125, 116, 0.58);
+}
+body.light #browserPanel {
+  border-color: rgba(63, 150, 117, 0.34);
+}
+button:active:not(:disabled),
+.action:active {
+  transform: translateY(0) scale(0.975);
+  transition-duration: 60ms;
+}
+.badge-dot {
+  animation: statusPulse 2.8s ease-in-out infinite;
+}
+@keyframes statusPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(66, 211, 146, 0.55);
+  }
+  50% {
+    box-shadow:
+      0 0 15px rgba(66, 211, 146, 0.95),
+      0 0 26px rgba(66, 211, 146, 0.28);
+  }
+}
+
+@media (max-width: 760px) {
+  body::before {
+    --glow-x: 14vw;
+    --glow-y: 92px;
+    --glow-size: 34rem;
+  }
+  body::after {
+    background-size: 19px 19px;
+    -webkit-mask-image: radial-gradient(
+      ellipse 110% 60% at 48% 10%,
+      #000 8%,
+      rgba(0, 0, 0, 0.78) 52%,
+      transparent 92%
+    );
+    mask-image: radial-gradient(
+      ellipse 110% 60% at 48% 10%,
+      #000 8%,
+      rgba(0, 0, 0, 0.78) 52%,
+      transparent 92%
+    );
+  }
+  .panel,
+  .editor,
+  .login-card {
+    backdrop-filter: blur(14px) saturate(1.06);
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .ambient-cursor-glow,
+  .ambient-click-ripple {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-cursor-glow,
+  .ambient-click-ripple {
+    display: none !important;
+  }
+  .badge-dot {
+    animation: none;
+  }
+  button,
+  .action {
+    transition-duration: 0.01ms !important;
   }
 }

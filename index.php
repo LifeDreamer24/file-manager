@@ -85,6 +85,7 @@ $loginThemeJsVersion = (string)(filemtime(__DIR__ . '/assets/login-theme.js') ?:
 $jsVersion = (string)(filemtime(__DIR__ . '/assets/app.js') ?: 1);
 $diskUsageCssVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.css') ?: 1);
 $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1);
+$ambientEffectsJsVersion = (string)(filemtime(__DIR__ . '/assets/ambient-effects.js') ?: 1);
 ?>
 <!doctype html>
 <html lang="en">
@@ -101,6 +102,7 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
   <link rel="stylesheet" href="assets/disk-usage.css?v=<?= $diskUsageCssVersion ?>" />
 </head>
 <body>
+<script src="assets/ambient-effects.js?v=<?= $ambientEffectsJsVersion ?>" defer></script>
 <?php if (!$loggedIn): ?>
   <script src="assets/login-theme.js?v=<?= $loginThemeJsVersion ?>"></script>
   <main class="login-wrap">

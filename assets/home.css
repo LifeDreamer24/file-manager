@@ -749,7 +749,9 @@ body.light .home-cta {
 
   .home-nav {
     width: 100%;
+    flex-direction: row;
     flex-wrap: nowrap;
+    justify-content: space-between;
     gap: 12px;
     padding: 8px 0;
   }
@@ -760,7 +762,7 @@ body.light .home-cta {
     white-space: nowrap;
   }
 
-  .home-nav .home-brand-mark { display: none; }
+  .home-nav .home-brand-mark { display: inline-flex; }
   .home-nav .home-brand > span:last-child { display: inline; }
   .home-nav-links { display: none; }
   .home-nav-actions {

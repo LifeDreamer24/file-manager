@@ -1,35 +1,58 @@
 (() => {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const exitDuration = 140;
+  const appEntranceDuration = 440;
   let navigating = false;
   let restoreTimer = null;
+  let entranceTimer = null;
 
   function entranceCleanupDelay() {
-    return document.querySelector("main.login-wrap, main.wrap") ? 320 : 190;
+    return document.querySelector("main.login-wrap, main.wrap")
+      ? appEntranceDuration + 40
+      : 190;
+  }
+
+  function isAppPage() {
+    return Boolean(document.querySelector("main.login-wrap, main.wrap"));
+  }
+
+  function finishEntrance() {
+    document.body.classList.remove("page-entering", "page-enter-active");
   }
 
   function enterPage() {
     clearTimeout(restoreTimer);
+    clearTimeout(entranceTimer);
     navigating = false;
     document.body.classList.remove("page-leaving");
     if (reducedMotion.matches) {
-      document.body.classList.remove("page-entering");
+      finishEntrance();
       return;
     }
+
+    if (isAppPage()) {
+      document.body.classList.remove("page-enter-active");
+      document.body.classList.add("page-entering");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.body.classList.add("page-enter-active");
+          entranceTimer = window.setTimeout(
+            finishEntrance,
+            entranceCleanupDelay(),
+          );
+        });
+      });
+      return;
+    }
+
     if (document.body.classList.contains("page-entering")) {
-      window.setTimeout(
-        () => document.body.classList.remove("page-entering"),
-        entranceCleanupDelay(),
-      );
+      entranceTimer = window.setTimeout(finishEntrance, entranceCleanupDelay());
       return;
     }
     document.body.classList.remove("page-entering");
     requestAnimationFrame(() => {
       document.body.classList.add("page-entering");
-      window.setTimeout(
-        () => document.body.classList.remove("page-entering"),
-        entranceCleanupDelay(),
-      );
+      entranceTimer = window.setTimeout(finishEntrance, entranceCleanupDelay());
     });
   }
 
@@ -40,7 +63,8 @@
       return;
     }
     navigating = true;
-    document.body.classList.remove("page-entering");
+    clearTimeout(entranceTimer);
+    document.body.classList.remove("page-entering", "page-enter-active");
     document.body.classList.add("page-leaving");
     window.setTimeout(navigate, exitDuration);
 

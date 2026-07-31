@@ -29,11 +29,10 @@
     const target = document.getElementById(targetId);
     if (!target) return;
 
-    const root = document.documentElement;
-    const previousScrollBehavior = root.style.scrollBehavior;
-    root.style.scrollBehavior = "auto";
-    target.scrollIntoView({ block: "start" });
-    root.style.scrollBehavior = previousScrollBehavior;
+    target.scrollIntoView({
+      behavior: reducedMotion.matches ? "auto" : "smooth",
+      block: "start",
+    });
   }
 
   function scheduleHomepageAnchorRestore() {

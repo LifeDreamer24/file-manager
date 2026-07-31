@@ -1315,7 +1315,12 @@ async function createItem(type) {
     const data = await apiPost("create", { type, path: state.path, name });
     toast(data.message || `${label} created.`);
     await loadFolder();
-    if (type === "file") editFile(data.path);
+    if (type === "file") {
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      );
+      await editFile(data.path);
+    }
   } catch (e) {
     toast(e.message || String(e));
   }

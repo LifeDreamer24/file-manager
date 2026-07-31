@@ -200,7 +200,8 @@ body.light .badge {
   outline: 0;
 }
 body.light .theme-toggle {
-  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(16, 122, 85, 0.34);
+  background: rgba(16, 122, 85, 0.09);
 }
 .login-pill {
   display: inline-flex;
@@ -250,7 +251,8 @@ body.light .login-pill {
   outline: 0;
 }
 body.light .logout-icon {
-  background: rgba(17, 24, 39, 0.045);
+  border-color: rgba(16, 122, 85, 0.34);
+  background: rgba(16, 122, 85, 0.09);
 }
 .icon-btn {
   width: 42px;
@@ -332,7 +334,8 @@ body.light .dropdown-menu {
 }
 body.light .dropdown-menu button {
   color: #111827;
-  background: rgba(17, 24, 39, 0.035);
+  border-color: rgba(16, 122, 85, 0.34);
+  background: rgba(16, 122, 85, 0.09);
 }
 body.light .dropdown-menu button:hover,
 body.light .dropdown-menu button:focus {
@@ -664,6 +667,10 @@ body.light .editor-head {
   padding: 6px 9px;
   border-radius: 9px;
   background: transparent;
+}
+body.light .breadcrumbs button {
+  border-color: rgba(16, 122, 85, 0.34);
+  background: rgba(16, 122, 85, 0.09);
 }
 .sep {
   color: #5e6977;
@@ -1170,7 +1177,8 @@ body.light .item-menu-list {
 body.light .item-menu-list .action,
 body.light .item-menu-list button {
   color: #111827;
-  background: rgba(17, 24, 39, 0.035);
+  border-color: rgba(16, 122, 85, 0.34);
+  background: rgba(16, 122, 85, 0.09);
 }
 .message {
   padding: 34px 20px;
@@ -2303,6 +2311,10 @@ body.light .move-browse {
   padding: 6px 9px;
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.035);
+}
+body.light .move-path button {
+  border-color: rgba(16, 122, 85, 0.34);
+  background: rgba(16, 122, 85, 0.09);
 }
 .move-current {
   display: flex;

@@ -821,6 +821,12 @@ body.light .home-cta {
     animation: pageFadeIn 170ms ease-out both;
   }
 
+  body.page-entering > main.login-wrap,
+  body.page-entering > main.wrap {
+    animation-duration: 300ms;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   body.page-leaving > main {
     pointer-events: none;
     animation: pageFadeOut 140ms ease-in both;

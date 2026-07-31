@@ -54,6 +54,15 @@ Editable file types and the default 2 MiB editor limit are controlled in `config
 
 Recognized formats are MP3, WAV, OGG/OGA, Opus, M4A, AAC, FLAC, MP4/M4V, WebM, OGV, and MOV. The player checks the browser's reported MIME support first, so unsupported formats download instead of opening with only a partially decoded track. Actual playback still depends on the codecs available in the browser.
 
+### Image viewer
+
+- Open recognized images in a focused modal without leaving the current folder.
+- Zoom from 25% to 800%, rotate in either direction, and reset to a fitted view.
+- See the image dimensions and download the original file from the viewer.
+- View images through the authenticated stream endpoint instead of requiring a public direct URL.
+
+Recognized formats are JPEG, PNG, GIF, WebP, AVIF, BMP/DIB, and ICO. Actual display depends on the image formats supported by the browser.
+
 ### Interface
 
 - Responsive desktop and mobile layouts with touch-friendly controls.
@@ -169,6 +178,7 @@ Always use HTTPS, keep backups of important files, and review the configuration 
 - Click a folder name to open it.
 - Click an editable text file to open the editor.
 - Click recognized audio or video to open the media player.
+- Click a recognized image to open the image viewer.
 - Other files download when their names are clicked.
 - Use each row's three-dot menu for individual actions.
 - Use the checkboxes for bulk actions.

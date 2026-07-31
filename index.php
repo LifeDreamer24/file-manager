@@ -13,6 +13,20 @@ if (!$passwordConfigured) {
     $error = 'Set FILE_MANAGER_PASSWORD, FILE_MANAGER_PASSWORD_HASH, or a secure value in config.php before signing in.';
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['page'] ?? '') === 'login' && is_logged_in()) {
+    $_SESSION = [];
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+    }
+    session_destroy();
+
+    $location = app_base_url() . '?page=login';
+    if ($requestedPath !== '') $location .= '&path=' . rawurlencode($requestedPath);
+    header('Location: ' . $location);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logout') {
     if (!csrf_is_valid((string)($_POST['csrf_token'] ?? ''))) {
         http_response_code(403);

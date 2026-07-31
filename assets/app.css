@@ -437,6 +437,10 @@ button:focus:not(:focus-visible):not(:hover) {
   border-color: var(--line);
   box-shadow: none;
 }
+body.light button:focus:not(:focus-visible):not(:hover) {
+  border-color: rgba(16, 122, 85, 0.34);
+  background: rgba(16, 122, 85, 0.09);
+}
 input,
 select,
 textarea {

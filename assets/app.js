@@ -166,13 +166,36 @@ async function apiPost(action, body = {}) {
   if (!r.ok || !j.ok) throw responseError(j, r.status);
   return j;
 }
+const folderMotionMedia = window.matchMedia(
+  "(prefers-reduced-motion: reduce)",
+);
 let folderLoadSequence = 0;
+let folderContentAnimation = null;
+let folderPanelAnimation = null;
+
+function cancelFolderMotion() {
+  folderContentAnimation?.cancel();
+  folderPanelAnimation?.cancel();
+  folderContentAnimation = null;
+  folderPanelAnimation = null;
+  content.closest(".wrap")?.classList.remove("folder-resizing");
+}
+async function waitForAnimation(animation) {
+  if (!animation) return;
+  try {
+    await animation.finished;
+  } catch {
+    // A newer folder request cancelled this transition.
+  }
+}
 async function loadFolder(showToast = false, transition = false) {
   const sequence = ++folderLoadSequence;
   const keepCurrentContent = transition && content.hasChildNodes();
+  const animateChange = keepCurrentContent && !folderMotionMedia.matches;
+  const appWrap = content.closest(".wrap");
 
+  cancelFolderMotion();
   content.setAttribute("aria-busy", "true");
-  content.classList.remove("folder-enter");
 
   if (keepCurrentContent) {
     renderBreadcrumbs();
@@ -187,24 +210,70 @@ async function loadFolder(showToast = false, transition = false) {
     const data = await apiGet("list", { path: state.path });
     if (sequence !== folderLoadSequence) return;
 
+    const previousPanelHeight = appWrap?.getBoundingClientRect().height || 0;
+
+    if (animateChange) {
+      folderContentAnimation = content.animate(
+        [{ opacity: 1 }, { opacity: 0 }],
+        {
+          duration: 140,
+          easing: "ease-in",
+          fill: "forwards",
+        },
+      );
+      await waitForAnimation(folderContentAnimation);
+      if (sequence !== folderLoadSequence) return;
+    }
+
     state.entries = data.entries || [];
     pruneSelection();
     render(data.stats);
 
-    if (keepCurrentContent) {
-      content.classList.remove("folder-loading");
-      void content.offsetWidth;
-      content.classList.add("folder-enter");
-      window.setTimeout(() => content.classList.remove("folder-enter"), 180);
+    if (animateChange) {
+      const nextPanelHeight = appWrap?.getBoundingClientRect().height || 0;
+
+      folderContentAnimation?.cancel();
+      folderContentAnimation = content.animate(
+        [{ opacity: 0 }, { opacity: 1 }],
+        {
+          duration: 170,
+          easing: "ease-out",
+          fill: "forwards",
+        },
+      );
+
+      if (
+        appWrap &&
+        previousPanelHeight > 0 &&
+        Math.abs(nextPanelHeight - previousPanelHeight) > 1
+      ) {
+        appWrap.classList.add("folder-resizing");
+        folderPanelAnimation = appWrap.animate(
+          [
+            { height: `${previousPanelHeight}px` },
+            { height: `${nextPanelHeight}px` },
+          ],
+          {
+            duration: 240,
+            easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+          },
+        );
+      }
+
+      await Promise.all([
+        waitForAnimation(folderContentAnimation),
+        waitForAnimation(folderPanelAnimation),
+      ]);
     }
 
     if (showToast) toast("Folder refreshed.");
   } catch (e) {
     if (sequence !== folderLoadSequence) return;
-    content.classList.remove("folder-loading");
+    cancelFolderMotion();
     showError(e.message || String(e));
   } finally {
     if (sequence === folderLoadSequence) {
+      cancelFolderMotion();
       content.classList.remove("folder-loading");
       content.removeAttribute("aria-busy");
     }

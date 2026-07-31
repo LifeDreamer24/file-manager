@@ -16,7 +16,6 @@
   --warn: #ffd166;
   --shadow: 0 18px 45px rgba(0, 0, 0, 0.26);
   --dot: rgba(143, 240, 193, 0.19);
-  --dot-glow: rgba(66, 211, 146, 0.11);
   font-family:
     ui-sans-serif,
     system-ui,
@@ -40,7 +39,6 @@ body.light {
   --name-hover: #087a55;
   --shadow: 0 18px 45px rgba(31, 41, 55, 0.12);
   --dot: rgba(35, 146, 105, 0.2);
-  --dot-glow: rgba(35, 146, 105, 0.09);
 }
 * {
   box-sizing: border-box;
@@ -92,8 +90,7 @@ body::after {
     circle at center,
     var(--dot) 0,
     var(--dot) 1px,
-    var(--dot-glow) 1.75px,
-    transparent 3.5px
+    transparent 1.25px
   );
   background-position: center top;
   background-size: 21px 21px;
@@ -3549,8 +3546,7 @@ body.light .toolbar input[type="search"] {
       circle at center,
       var(--dot) 0,
       var(--dot) 1px,
-      var(--dot-glow) 1.75px,
-      transparent 3.5px
+      transparent 1.25px
     )
     0 0 / 17px 17px;
   -webkit-mask-image: linear-gradient(

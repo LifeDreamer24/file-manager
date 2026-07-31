@@ -182,6 +182,7 @@ $diskUsageJsVersion = (string)(filemtime(__DIR__ . '/assets/disk-usage.js') ?: 1
             Open file manager <span aria-hidden="true">→</span>
           </a>
           <a class="home-button home-button-secondary" href="#features">Explore features</a>
+          <a class="home-button home-button-secondary" href="https://github.com/LifeDreamer24/file-manager" target="_blank" rel="noopener noreferrer">View on GitHub <span aria-hidden="true">↗</span></a>
         </div>
         <ul class="home-trust-list" aria-label="Product highlights">
           <li><span aria-hidden="true">✓</span> Self-hosted</li>

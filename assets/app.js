@@ -2109,7 +2109,6 @@ async function setPreviewMode(show, focusEditor = false, transition = true) {
   const canPreview = !!previewKind();
   const nextPreviewing = !!show && canPreview;
   const changed = state.previewing !== nextPreviewing;
-  const outgoing = state.previewing ? editorPreview : editorBody;
   const incoming = nextPreviewing ? editorPreview : editorBody;
   state.previewing = nextPreviewing;
   clearTimeout(state.previewTimer);
@@ -2118,8 +2117,19 @@ async function setPreviewMode(show, focusEditor = false, transition = true) {
   previewFile.textContent = state.previewing ? "Edit" : "Preview";
   previewFile.setAttribute("aria-pressed", String(state.previewing));
 
-  if (changed && transition && !folderMotionMedia.matches && !outgoing.hidden) {
-    editorPreviewAnimation = outgoing.animate(
+  // During an interrupted transition, state already contains the requested mode
+  // while the opposite pane may still be visible. Start from the pane the DOM is
+  // actually showing so a rapid Preview/Edit click cannot leave both panes hidden.
+  const visiblePane = !editorPreview.hidden ? editorPreview : editorBody;
+  const animateChange =
+    changed &&
+    transition &&
+    !folderMotionMedia.matches &&
+    visiblePane !== incoming &&
+    !visiblePane.hidden;
+
+  if (animateChange) {
+    editorPreviewAnimation = visiblePane.animate(
       [{ opacity: 1 }, { opacity: 0 }],
       { duration: 140, easing: "ease-in", fill: "forwards" },
     );
@@ -2127,8 +2137,9 @@ async function setPreviewMode(show, focusEditor = false, transition = true) {
     if (sequence !== editorPreviewSequence) return;
   }
 
-  outgoing.hidden = true;
-  incoming.hidden = false;
+  // Always restore one canonical layout after a cancellation or completed fade.
+  editorBody.hidden = state.previewing;
+  editorPreview.hidden = !state.previewing;
   if (state.previewing) {
     renderEditorPreview();
   } else {
@@ -2136,7 +2147,7 @@ async function setPreviewMode(show, focusEditor = false, transition = true) {
     editorPreviewContent.replaceChildren();
   }
 
-  if (changed && transition && !folderMotionMedia.matches) {
+  if (animateChange) {
     editorPreviewAnimation = incoming.animate(
       [{ opacity: 0 }, { opacity: 1 }],
       { duration: 170, easing: "ease-out", fill: "forwards" },

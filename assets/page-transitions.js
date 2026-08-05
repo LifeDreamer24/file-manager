@@ -165,3 +165,39 @@
     scheduleHomepageAnchorRestore();
   }
 })();
+
+(() => {
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  function installFileListTransitions() {
+    const content = document.getElementById("content");
+    const originalLoadFolder = window.loadFolder;
+    if (!content || typeof originalLoadFolder !== "function") return;
+
+    window.loadFolder = function (
+      showToast = false,
+      transition = false,
+      preserveCurrentStatus = false,
+    ) {
+      const hasRenderedContent = Boolean(
+        content.querySelector(".file-table, .message"),
+      );
+      const animateListChange =
+        hasRenderedContent && !transition && !reducedMotion.matches;
+
+      return originalLoadFolder(
+        showToast,
+        transition || animateListChange,
+        preserveCurrentStatus || animateListChange,
+      );
+    };
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", installFileListTransitions, {
+      once: true,
+    });
+  } else {
+    installFileListTransitions();
+  }
+})();
